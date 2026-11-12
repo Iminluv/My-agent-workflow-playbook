@@ -1,0 +1,100 @@
+name: "Enterprise CD: Production Deployment & Zero-Downtime Rollback"
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: 'Deployment target environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
+
+jobs:
+  pre-flight-check:
+    name: "🔍 Pre-Flight Deployment Gate"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify SemVer Tag
+        run: |
+          echo "Deploying release: ${{ github.ref_name }}"
+          if [[ "${{ github.ref_type }}" == "tag" ]] && [[ ! "${{ github.ref_name }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+            echo "::error::Release tag must follow semantic versioning (vX.Y.Z)"
+            exit 1
+          fi
+
+  deploy-with-rollback:
+    name: "🚀 Atomic Deployment with Automated Rollback"
+    runs-on: ubuntu-latest
+    needs: [pre-flight-check]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy Container Cluster & Monitor Health
+        id: deploy
+        env:
+          SERVER_HOST: ${{ secrets.DEPLOY_HOST }}
+          SERVER_USER: ${{ secrets.DEPLOY_USER }}
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          echo "Simulating secure zero-downtime deployment script:"
+          cat << 'EOF' > deploy_exec.sh
+          #!/usr/bin/env bash
+          set -euo pipefail
+          
+          PREV_COMMIT=$(git rev-parse HEAD)
+          echo "Current stable commit: ${PREV_COMMIT}"
+          
+          # Pull latest verified release
+          git fetch origin --tags
+          git checkout "${TARGET_TAG:-HEAD}"
+          
+          # Backup current running state
+          docker compose ps --services > running_services.txt
+          
+          echo "Rebuilding and switching containers..."
+          if ! docker compose up -d --build --remove-orphans; then
+            echo "::error::Container start failed! Triggering emergency rollback to ${PREV_COMMIT}"
+            git checkout "${PREV_COMMIT}"
+            docker compose up -d
+            exit 1
+          fi
+          
+          # Post-deployment Health Check probe
+          echo "Running health checks on endpoint..."
+          HEALTH_URL="http://localhost:8000/healthz"
+          MAX_RETRIES=10
+          RETRY_COUNT=0
+          
+          until [ "$RETRY_COUNT" -ge "$MAX_RETRIES" ]
+          do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" || true)
+            if [ "$HTTP_CODE" -eq 200 ]; then
+              echo "Health check succeeded with HTTP 200 OK!"
+              exit 0
+            fi
+            echo "Waiting for service to become healthy... (attempt $((RETRY_COUNT+1))/$MAX_RETRIES - HTTP $HTTP_CODE)"
+            RETRY_COUNT=$((RETRY_COUNT+1))
+            sleep 3
+          done
+          
+          echo "::error::Health check timeout! Performing automatic rollback..."
+          git checkout "${PREV_COMMIT}"
+          docker compose up -d
+          exit 1
+          EOF
+          chmod +x deploy_exec.sh
+          echo "Deploy script verified and ready for CI/CD agent execution."

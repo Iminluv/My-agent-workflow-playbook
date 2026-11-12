@@ -1,112 +1,73 @@
 ---
 name: planning-gate
-version: 1.0.0
+version: 2.0.0
 priority: P0
 trigger: always_on
-description: Mandatory Human-in-the-Loop Planning Gate and Phase-to-Agent/Skill Delegation Matrix for audits, reviews, complex features, and multi-step implementations.
+description: Mandatory Human-in-the-Loop Planning Gate and Phase-to-Agent/Skill Delegation Matrix with Phase 0 Git Branch Setup, Disjoint Ownership, and Proceed Approval Barrier.
 ---
 
-# Human-in-the-Loop Planning Gate & Delegation Matrix (P0)
+# Human-in-the-Loop Planning Gate & Delegation Matrix (P0 - Enterprise v2.0)
 
-> **Core Philosophy:** The user should never need to memorize all agents and skills, nor manually figure out how to divide complex tasks across specialists. The AI must autonomously formulate the delegation plan, present it for review, and wait for explicit human approval before executing.
-
----
-
-## 🛑 1. When This Gate Applies
-
-This protocol is **MANDATORY** whenever a request involves:
-1. **Audits & Comprehensive Reviews** ("review every code, plan, decision", "kiểm toán toàn diện", "security review").
-2. **Complex Code & Architectural Refactoring** ("refactor", "tái cấu trúc", "build new architecture").
-3. **Multi-Domain Features** (involving backend, frontend, database, or security combined).
-4. **Any task requiring more than 3 non-trivial execution steps.**
+> **Triết lý cốt lõi:** Người dùng không cần phải ghi nhớ danh mục tác tử hay tự chia nhỏ bài toán phức tạp. AI tự động xây dựng kế hoạch phân công độc lập, kiểm tra an toàn nhánh tại Phase 0, trình người dùng phê duyệt qua nút "Proceed" trước khi bắt đầu can thiệp mã nguồn.
 
 ---
 
-## 📋 2. Autonomous Delegation Matrix Formulation
+## 🛑 1. Khi Nào Quy Tắc Này Được Kích Hoạt?
 
-Before running extensive tools, deep test suites, or modifying code, the AI (acting as `project-planner` or `orchestrator`) MUST synthesize a structured **Delegation Matrix**:
+Bắt buộc áp dụng 100% đối với:
+1. **Kiểm toán & Đánh giá toàn diện:** "review mọi code", "kiểm toán bảo mật", "audit hệ thống".
+2. **Tái cấu trúc kiến trúc:** "refactor", "tái cấu trúc", "chuyển đổi kiến trúc".
+3. **Tính năng đa tầng (Multi-Domain):** Chạm vào từ 2 tầng trở lên (Frontend + Backend + DB + CI/CD).
+4. **Mọi yêu cầu có hơn 3 bước thực thi không tầm thường.**
 
-### Required Matrix Format:
+---
 
-| Phase | Phase Name & Objective | Assigned Specialist Agent | Relevant Skills to Apply | Expected Deliverable |
+## 📋 2. Ma Trận Phân Công Chuẩn Enterprise (Đã bao gồm Phase 0)
+
+Trước khi thực thi bất kỳ công cụ chỉnh sửa hay kiểm thử nặng nào, AI (vai trò `orchestrator`) PHẢI lập bảng sau:
+
+### Cấu Trúc Bắt Buộc:
+
+| Phase | Tên Phase & Mục Tiêu | Chuyên Gia Phụ Trách | Kỹ Năng (Skills) | Sản Phẩm Đầu Ra (Deliverable) |
 | :--- | :--- | :--- | :--- | :--- |
-| **Phase 1** | Discovery & History Audit | `code-archaeologist` | `@architecture`, `@bash-linux` | Worktree lineage & plan comparison report |
-| **Phase 2** | Test Automation & Regression | `qa-automation-engineer` | `@testing-patterns` | Automated test suite execution & pass matrix |
-| **Phase 3** | Offensive Security Audit | `security-auditor` | `@vulnerability-scanner` | Process sandbox, argv & CSRF vulnerability report |
-| **Phase 4** | Code Quality & Refactoring | `orchestrator` / `backend-specialist` | `@clean-code`, `@python-patterns` | Actionable refactoring & consolidation roadmap |
-
-### Rules for Agent & Skill Selection:
-- **Auto-Discovery:** Select agents from the project/system roster (`security-auditor`, `frontend-specialist`, `backend-specialist`, `devops-engineer`, `code-archaeologist`, `qa-automation-engineer`, etc.).
-- **Domain Pairing:** Pair each phase with 1–2 specific skills from the catalog (e.g. `@vulnerability-scanner`, `@clean-code`, `@testing-patterns`, `@frontend-architecture`).
-- **No User Burden:** Never ask the user "Which agent should I use?". The AI proposes the optimal roster upfront.
+| **Phase 0** | **Workspace & Git Safety Setup** | `devops-engineer` / `orchestrator` | `@bash-linux` | Nhánh `feat/*` đã được checkout an toàn |
+| **Phase 1** | Khảo Sát & Lineage Audit | `code-archaeologist` | `@architecture` | Bản đồ trạng thái hiện tại & baseline |
+| **Phase 2** | Kiểm Toán & Vá Lỗi Chuyên Môn | `security-auditor` / `backend-specialist` | `@vulnerability-scanner` | Patch mã nguồn trong phạm vi disjoint |
+| **Phase 3** | Kiểm Thử Nghiệm Thu & Zero Regression | `qa-automation-engineer` | `@testing-patterns` | Pass 100% test suite tự động |
+| **Phase 4** | Đóng Gói, Tổng Hợp & PR Release | `orchestrator` | `@clean-code` | Deliverable Report + Sẵn sàng merge PR |
 
 ---
 
-## 🚪 3. The "Proceed" Approval Gate (Artifact with Feedback)
+## 🚪 3. Cổng Phê Duyệt "Proceed" (Artifact Feedback Barrier)
 
-1. **Publish as Plan Artifact:**
-   The AI MUST write the complete plan and Delegation Matrix to an artifact markdown file (e.g., `<appDataDir>/brain/<conversation-id>/plan.md` or `{task-slug}-plan.md`) with:
+1. **Xuất bản Kế Hoạch ra Artifact:**
+   AI bắt buộc phải ghi ma trận vào file Markdown với metadata:
    ```json
    "ArtifactMetadata": {
      "RequestFeedback": true,
      "UserFacing": true,
-     "Summary": "Detailed delegation matrix and execution plan awaiting user review and approval."
+     "Summary": "Kế hoạch phân công đa tác tử và bảo vệ nhánh Git chờ phê duyệt."
    }
    ```
-   > 💡 Setting `RequestFeedback: true` renders a native, clickable **"Proceed"** button directly in the chat UI!
-
-2. **Present Concise Summary to User:**
-   In chat, concisely highlight:
-   - The phases and their assigned Specialist Agents + Skills.
-   - Any key open architectural trade-offs or optional dimensions.
-   - Point the user to review the plan artifact.
-
-3. **🛑 HARD STOP (Strict Barrier):**
-   - The AI **MUST STOP CALLING TOOLS IMMEDIATELY** after creating the plan artifact and sending the presentation message.
-   - **STRICTLY FORBIDDEN:** Do NOT begin executing Phase 1, running heavy test suites, or editing code until the user clicks **Proceed** or confirms in chat (e.g., *"Proceed"*, *"OK"*, *"Đồng ý"*).
+2. **🛑 DỪNG CÔNG CỤ HOÀN TOÀN (HARD STOP):**
+   - AI **DỪNG MỌI CÔNG CỤ NGAY LẬP TỨC** sau khi xuất bản artifact.
+   - **NGHIÊM CẤM:** Không được chạy Phase 0 hay sửa file trước khi người dùng click nút **Proceed** hoặc nhắn xác nhận trong chat.
 
 ---
 
-## 👥 4. Third-Party & Peer Review Capability
+## ⚡ 4. Kỷ Luật Thực Thi Sau Khi Được Duyệt
 
-Because the plan is rendered in a dedicated Artifact document:
-- The user, colleagues, or peer reviewers can read the exact breakdown.
-- They can adjust the scope, add special audit dimensions (e.g. "Add API rate limiting audit to Phase 3"), or swap specialists before any compute or quota is spent.
-- Once feedback is incorporated, the user confirms to proceed.
-
----
-
-## ⚡ 5. Execution after Approval & Multi-Phase Discipline
-
-Once approval is granted:
-
-### 5.1. Phase-to-Phase Transition Checkpoints (MANDATORY)
-- **Turn 1 of Execution:** Immediately announce Phase 1:
-  `🤖 **Applying knowledge of `@[specialist-agent]`...**`
-  `📚 **Using skill: `@[skill-name]`...**`
-- **At EVERY Phase Boundary:** When Phase N completes and Phase N+1 begins, the coordinator MUST emit an explicit text checkpoint in chat:
-  ```markdown
-  ---
-  ### 🚀 Bắt đầu Phase [X]: [Tên Phase]
-  🤖 **Applying knowledge of `@[specialist-agent]`...**
-  📚 **Using skills: `@[skill-1]` + `@[skill-2]`...**
-  > **Mục tiêu:** [Tóm tắt 1-2 câu về phạm vi và kết quả mong muốn của Phase này]
-  ```
-- ❌ **STRICTLY FORBIDDEN:** Running multiple phases in a single silent tool-execution loop. Transitioning to a new domain (e.g., from Backend Security to Frontend SPA) without an explicit announcement is a **CRITICAL PROTOCOL VIOLATION**.
-
-### 5.2. Subagent Delegation vs Monolithic Execution
-- **True Multi-Agent Execution (Recommended for Separable Domains):**
-  - When the plan involves distinct domains (e.g., Security, Backend, Frontend, Testing), the coordinator (`orchestrator`) SHOULD invoke dedicated subagents (`invoke_subagent`) matching the assigned specialist role:
-    - Pass `TypeName: "self"` (or specialist name), `Role: "<Specialist Name>"`, and a clear scoped prompt.
-    - Each subagent executes in its own isolated turn/context and sends the result back.
-- **Monolithic Execution (When executing in the parent turn):**
-  - If running in the parent conversation, the agent MUST strictly adhere to the **Phase Transition Checkpoints** above.
-  - **No Pretense Rule:** The agent must NEVER claim in the final summary that "the team of specialists A, B, C completed the tasks" unless each specialist was actually either invoked as a subagent or explicitly announced at their phase transition.
-
-### 5.3. Anti-Silent Loop Circuit Breaker (Max 8 Tool Calls)
-- The agent **MUST NOT** execute more than 8 tool calls consecutively without outputting visible interim progress text to the user.
-- Periodic progress reports (e.g., test suite finished, scanning module X completed) ensure transparency and prevent user perception of a hung or unresponsive session.
-
-### 5.4. Deliverable Synthesis & Final Artifact
-- Consolidate all phase findings into the final deliverable artifact (e.g. `{task-slug}-report.md`) with `UserFacing: true`.
-- Present a concise executive summary in chat referencing the artifact. DO NOT duplicate the entire report content into the chat message.
+1. **Phase 0 là Bắt Buộc:**
+   - Ngay tại Turn 1 sau khi được duyệt, Orchestrator phải chạy `git branch --show-current`.
+   - Nếu đang ở `main` hoặc `master`, tạo nhánh mới: `git checkout -b feat/<task-slug>-<date>`.
+2. **Khai Báo Ranh Giới Phase (Phase Checkpoints):**
+   Mỗi khi chuyển tiếp phase hoặc domain, phát thông báo công khai:
+   ```markdown
+   ---
+   ### 🚀 Bắt đầu Phase [X]: [Tên Phase]
+   🤖 **Applying knowledge of `@[specialist-agent]`...**
+   📚 **Using skills: `@[skill-1]` + `@[skill-2]`...**
+   > **Mục tiêu:** [Tóm tắt 1-2 câu]
+   ```
+3. **Chống Silent Loop (Ngắt mạch 8 lệnh):** Tuyệt đối không chạy quá 8 tool calls liên tiếp mà không có thông báo trung gian.
+4. **Phân Quyền Bằng Contract:** Mọi subagent phải nhận được contract phân định rõ `Allowed File Paths` theo quy định tại `delegation-contract.md`.

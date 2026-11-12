@@ -1,0 +1,140 @@
+name: "Enterprise CI Gate: Quality, Security & Tests"
+
+on:
+  pull_request:
+    branches:
+      - main
+      - staging
+      - develop
+  push:
+    branches:
+      - staging
+      - develop
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secret-scan:
+    name: "🛡️ Secret & Credential Scanning"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: TruffleHog OSS Secret Scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  lint-and-typecheck:
+    name: "🧹 Static Analysis & Linting"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Python check if python files exist
+      - name: Check Python setup
+        id: check-py
+        run: |
+          if [ -f "pyproject.toml" ] || [ -f "requirements.txt" ]; then
+            echo "has_python=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up Python
+        if: steps:check-py.outputs.has_python == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Python Linters
+        if: steps:check-py.outputs.has_python == 'true'
+        run: |
+          pip install ruff mypy
+
+      - name: Run Ruff Lint
+        if: steps:check-py.outputs.has_python == 'true'
+        run: |
+          ruff check .
+
+      # Node.js check if frontend exists
+      - name: Check Node.js setup
+        id: check-node
+        run: |
+          if [ -f "package.json" ] || [ -d "frontend" ]; then
+            echo "has_node=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up Node.js
+        if: steps:check-node.outputs.has_node == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run Frontend Lint
+        if: steps:check-node.outputs.has_node == 'true'
+        run: |
+          if [ -d "frontend" ]; then
+            cd frontend && npm ci && npm run lint --if-present
+          else
+            npm ci && npm run lint --if-present
+          fi
+
+  automated-tests:
+    name: "🧪 Automated Regression Test Suite"
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f "pyproject.toml" ]; then
+            pip install -e ".[test]" || pip install pytest pytest-cov anyio
+          elif [ -f "requirements.txt" ]; then
+            pip install -r requirements.txt
+            pip install pytest pytest-cov
+          fi
+
+      - name: Execute Pytest Suite with Coverage
+        run: |
+          python -m pytest --maxfail=5 -v --durations=10
+
+      - name: Set up Node.js & Execute Frontend Tests
+        run: |
+          if [ -d "frontend" ]; then
+            cd frontend
+            npm ci
+            npm test -- --run || npm run test:unit --if-present
+          fi
+
+  build-validation:
+    name: "📦 Production Build Dry-Run"
+    runs-on: ubuntu-latest
+    needs: [automated-tests]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Frontend Assets
+        run: |
+          if [ -d "frontend" ]; then
+            cd frontend
+            npm ci
+            npm run build
+          fi
