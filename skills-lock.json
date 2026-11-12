@@ -1,0 +1,31 @@
+{
+  "version": 2,
+  "description": "Lockfile guaranteeing deterministic skill and agent dependencies",
+  "skills": {
+    "clean-code": {
+      "version": "1.0.0",
+      "status": "active",
+      "priority": "P0"
+    },
+    "parallel-agents": {
+      "version": "1.0.0",
+      "status": "active",
+      "priority": "P0"
+    },
+    "deployment-procedures": {
+      "version": "2.0.0",
+      "status": "active",
+      "priority": "P0"
+    },
+    "vulnerability-scanner": {
+      "version": "2.0.0",
+      "status": "active",
+      "priority": "P0"
+    },
+    "architecture": {
+      "version": "1.0.0",
+      "status": "active",
+      "priority": "P1"
+    }
+  }
+}

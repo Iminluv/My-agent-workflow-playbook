@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Antigravity Multi-Agent Rules & Playbook Installer
-# Đồng bộ hệ thống quy tắc và playbook sang Antigravity trong 1 nốt nhạc.
+# Antigravity Multi-Agent Rules & Agents Installer (Enterprise v2.0)
+# Đồng bộ hệ thống quy tắc, tác tử chuyên môn và templates sang Antigravity.
 # ==============================================================================
 
 set -euo pipefail
@@ -11,21 +11,17 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RULES_SRC="${ROOT_DIR}/rules"
-TARGET_DIR="${HOME}/.gemini/config/plugins/ag-kit/rules"
+AGENTS_SRC="${ROOT_DIR}/agents"
+TARGET_RULES_DIR="${HOME}/.gemini/config/plugins/ag-kit/rules"
+TARGET_AGENTS_DIR="${HOME}/.gemini/config/plugins/ag-kit/agents"
 
 echo -e "${BLUE}=================================================================${NC}"
-echo -e "${BLUE}🚀 ANTIGRAVITY WORKFLOW & RULES BOOTSTRAP${NC}"
+echo -e "${BLUE}🚀 ANTIGRAVITY ENTERPRISE WORKFLOW BOOTSTRAP (v2.0)${NC}"
 echo -e "${BLUE}=================================================================${NC}"
-
-# Kiểm tra thư mục nguồn
-if [[ ! -d "${RULES_SRC}" ]]; then
-    echo -e "${RED}❌ Lỗi: Không tìm thấy thư mục rules tại ${RULES_SRC}${NC}"
-    exit 1
-fi
 
 MODE="symlink"
 if [[ "${1:-}" == "--copy" || "${1:-}" == "-c" ]]; then
@@ -33,57 +29,50 @@ if [[ "${1:-}" == "--copy" || "${1:-}" == "-c" ]]; then
 fi
 
 MODE_UPPER="$(echo "${MODE}" | tr '[:lower:]' '[:upper:]')"
-echo -e "📂 Thư mục nguồn : ${YELLOW}${RULES_SRC}${NC}"
-echo -e "🎯 Thư mục đích  : ${YELLOW}${TARGET_DIR}${NC}"
 echo -e "⚙️  Chế độ cài đặt : ${GREEN}${MODE_UPPER}${NC}"
 
-# Tạo thư mục đích nếu chưa tồn tại
-mkdir -p "${TARGET_DIR}"
+# Hàm đồng bộ một thư mục nguồn sang thư mục đích
+sync_folder() {
+    local src_dir="$1"
+    local dest_dir="$2"
+    local label="$3"
 
-# Sao lưu nếu thư mục đích đã có file
-TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
-BACKUP_DIR="${HOME}/.gemini/config/plugins/ag-kit/rules.backup.${TIMESTAMP}"
-HAS_EXISTING=0
-
-for f in "${RULES_SRC}"/*.md; do
-    fname="$(basename "$f")"
-    if [[ -f "${TARGET_DIR}/${fname}" && ! -L "${TARGET_DIR}/${fname}" ]]; then
-        HAS_EXISTING=1
-        break
-    fi
-done
-
-if [[ ${HAS_EXISTING} -eq 1 ]]; then
-    echo -e "${YELLOW}📦 Phát hiện cấu hình cũ, đang tạo bản sao lưu tại:${NC} ${BACKUP_DIR}"
-    mkdir -p "${BACKUP_DIR}"
-    cp -r "${TARGET_DIR}"/* "${BACKUP_DIR}/" 2>/dev/null || true
-fi
-
-# Cài đặt từng file quy tắc
-echo -e "\n${BLUE}⏳ Đang đồng bộ các quy tắc...${NC}"
-COUNT=0
-
-for src_file in "${RULES_SRC}"/*.md; do
-    filename="$(basename "${src_file}")"
-    dest_file="${TARGET_DIR}/${filename}"
-
-    # Xóa file hoặc symlink cũ nếu có
-    if [[ -e "${dest_file}" || -L "${dest_file}" ]]; then
-        rm -f "${dest_file}"
+    if [[ ! -d "${src_dir}" ]]; then
+        echo -e "${YELLOW}⚠️  Bỏ qua ${label}: Thư mục ${src_dir} không tồn tại.${NC}"
+        return 0
     fi
 
-    if [[ "${MODE}" == "symlink" ]]; then
-        ln -s "${src_file}" "${dest_file}"
-        echo -e "  🔗 Linked : ${GREEN}${filename}${NC} -> ${src_file}"
-    else
-        cp "${src_file}" "${dest_file}"
-        echo -e "  📄 Copied : ${GREEN}${filename}${NC}"
-    fi
-    COUNT=$((COUNT + 1))
-done
+    mkdir -p "${dest_dir}"
+    echo -e "\n${BLUE}⏳ Đang đồng bộ ${label}...${NC}"
+    local count=0
+
+    for src_file in "${src_dir}"/*.md; do
+        [[ -e "$src_file" ]] || continue
+        local filename="$(basename "${src_file}")"
+        local dest_file="${dest_dir}/${filename}"
+
+        if [[ -e "${dest_file}" || -L "${dest_file}" ]]; then
+            rm -f "${dest_file}"
+        fi
+
+        if [[ "${MODE}" == "symlink" ]]; then
+            ln -s "${src_file}" "${dest_file}"
+            echo -e "  🔗 Linked : ${GREEN}${filename}${NC}"
+        else
+            cp "${src_file}" "${dest_file}"
+            echo -e "  📄 Copied : ${GREEN}${filename}${NC}"
+        fi
+        count=$((count + 1))
+    done
+    echo -e "  ✨ Đã đồng bộ ${GREEN}${count}${NC} files ${label}."
+}
+
+# Thực hiện đồng bộ Rules và Agents
+sync_folder "${RULES_SRC}" "${TARGET_RULES_DIR}" "Rules (Quy tắc P0/P1)"
+sync_folder "${AGENTS_SRC}" "${TARGET_AGENTS_DIR}" "Agents (Tác tử chuyên môn)"
 
 echo -e "\n${GREEN}=================================================================${NC}"
-echo -e "${GREEN}✅ ĐỒNG BỘ THÀNH CÔNG ${COUNT} QUY TẮC CỐT LÕI!${NC}"
+echo -e "${GREEN}🎉 NÂNG CẤP HỆ THỐNG QUẢN TRỊ ĐA TÁC TỬ V2.0 THÀNH CÔNG!${NC}"
 echo -e "${GREEN}=================================================================${NC}"
-echo -e "💡 Giờ đây mọi phiên làm việc mới trên Antigravity sẽ tự động áp dụng"
-echo -e "   bộ quy tắc: Planning Gate, Core Protocol & Request Routing."
+echo -e "💡 Hệ thống đã kích hoạt: Git Branch Safety (P0), Planning Gate v2,"
+echo -e "   Delegation Contract, và Impact Analysis Protocol."
