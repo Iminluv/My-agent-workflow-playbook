@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # Antigravity Multi-Agent Rules & Agents Installer (Enterprise v2.0)
-# Đồng bộ hệ thống quy tắc, tác tử chuyên môn và templates sang Antigravity.
+# Synchronizes rules, specialist agents, and templates to Antigravity configuration.
 # ==============================================================================
 
 set -euo pipefail
 
-# Màu hiển thị
+# Display Colors
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
@@ -29,21 +29,21 @@ if [[ "${1:-}" == "--copy" || "${1:-}" == "-c" ]]; then
 fi
 
 MODE_UPPER="$(echo "${MODE}" | tr '[:lower:]' '[:upper:]')"
-echo -e "⚙️  Chế độ cài đặt : ${GREEN}${MODE_UPPER}${NC}"
+echo -e "⚙️  Installation Mode : ${GREEN}${MODE_UPPER}${NC}"
 
-# Hàm đồng bộ một thư mục nguồn sang thư mục đích
+# Function to synchronize a source directory to a target directory
 sync_folder() {
     local src_dir="$1"
     local dest_dir="$2"
     local label="$3"
 
     if [[ ! -d "${src_dir}" ]]; then
-        echo -e "${YELLOW}⚠️  Bỏ qua ${label}: Thư mục ${src_dir} không tồn tại.${NC}"
+        echo -e "${YELLOW}⚠️  Skipping ${label}: Directory ${src_dir} does not exist.${NC}"
         return 0
     fi
 
     mkdir -p "${dest_dir}"
-    echo -e "\n${BLUE}⏳ Đang đồng bộ ${label}...${NC}"
+    echo -e "\n${BLUE}⏳ Synchronizing ${label}...${NC}"
     local count=0
 
     for src_file in "${src_dir}"/*.md; do
@@ -64,15 +64,15 @@ sync_folder() {
         fi
         count=$((count + 1))
     done
-    echo -e "  ✨ Đã đồng bộ ${GREEN}${count}${NC} files ${label}."
+    echo -e "  ✨ Successfully synchronized ${GREEN}${count}${NC} files for ${label}."
 }
 
-# Thực hiện đồng bộ Rules và Agents
-sync_folder "${RULES_SRC}" "${TARGET_RULES_DIR}" "Rules (Quy tắc P0/P1)"
-sync_folder "${AGENTS_SRC}" "${TARGET_AGENTS_DIR}" "Agents (Tác tử chuyên môn)"
+# Synchronize Rules and Specialist Agents
+sync_folder "${RULES_SRC}" "${TARGET_RULES_DIR}" "Rules (P0/P1 Governance)"
+sync_folder "${AGENTS_SRC}" "${TARGET_AGENTS_DIR}" "Agents (Specialist Roles)"
 
 echo -e "\n${GREEN}=================================================================${NC}"
-echo -e "${GREEN}🎉 NÂNG CẤP HỆ THỐNG QUẢN TRỊ ĐA TÁC TỬ V2.0 THÀNH CÔNG!${NC}"
+echo -e "${GREEN}🎉 ENTERPRISE MULTI-AGENT GOVERNANCE UPGRADE COMPLETE!${NC}"
 echo -e "${GREEN}=================================================================${NC}"
-echo -e "💡 Hệ thống đã kích hoạt: Git Branch Safety (P0), Planning Gate v2,"
-echo -e "   Delegation Contract, và Impact Analysis Protocol."
+echo -e "💡 Active Protections: Git Branch Safety (P0), Planning Gate v2,"
+echo -e "   Delegation Contract, and Full-Stack Impact Analysis."

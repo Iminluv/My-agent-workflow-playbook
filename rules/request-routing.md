@@ -22,7 +22,7 @@ trigger: always_on
 | **SIMPLE CODE**  | "fix", "add", "change" (single file)       | TIER 0 + TIER 1 (lite)         | Inline Edit                 |
 | **COMPLEX CODE** | "build", "create", "implement", "refactor" | TIER 0 + TIER 1 (full) + Agent | **{task-slug}.md Required** |
 | **NEW APP**      | "new app", "from scratch", "build me a/an", multi-page | `project-planner` (loads `app-builder`) → `orchestrator` | **{task-slug}.md + app-builder** |
-| **AUDIT/REVIEW** | "review", "audit", "đánh giá", "kiểm toán toàn bộ" | TIER 0 + TIER 1 + Delegation Gate | **Plan Artifact + Proceed Gate Required** |
+| **AUDIT/REVIEW** | "review", "audit", "evaluation", "comprehensive assessment" | TIER 0 + TIER 1 + Delegation Gate | **Plan Artifact + Proceed Gate Required** |
 | **DESIGN/UI**    | "design", "UI", "page", "dashboard"        | TIER 0 + TIER 1 + Agent        | **{task-slug}.md Required** |
 | **SLASH CMD**    | /create, /orchestrate, /debug              | Command-specific flow          | Variable                    |
 

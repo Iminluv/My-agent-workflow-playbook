@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # Antigravity Rules & Agents Verification Script (Enterprise v2.0)
-# Kiểm tra tính toàn vẹn và hợp lệ của toàn bộ hệ thống quy tắc và tác tử.
+# Validates integrity and completeness of all governance rules and specialist agents.
 # ==============================================================================
 
 set -euo pipefail
@@ -16,7 +16,7 @@ TARGET_RULES_DIR="${HOME}/.gemini/config/plugins/ag-kit/rules"
 TARGET_AGENTS_DIR="${HOME}/.gemini/config/plugins/ag-kit/agents"
 
 echo -e "${BLUE}=================================================================${NC}"
-echo -e "${BLUE}🔍 KIỂM TRA TRẠNG THÁI QUẢN TRỊ ENTERPRISE ANTIGRAVITY (v2.0)${NC}"
+echo -e "${BLUE}🔍 VERIFYING ANTIGRAVITY ENTERPRISE GOVERNANCE (v2.0)${NC}"
 echo -e "${BLUE}=================================================================${NC}"
 
 REQUIRED_RULES=(
@@ -47,14 +47,14 @@ verify_list() {
     shift 2
     local items=("$@")
 
-    echo -e "\n📂 Kiểm tra: ${YELLOW}${label}${NC} (${target_dir})"
-    printf "%-25s | %-10s | %-10s | %s\n" "Tên File" "Loại" "Kích Thước" "Trạng Thái"
+    echo -e "\n📂 Checking: ${YELLOW}${label}${NC} (${target_dir})"
+    printf "%-25s | %-10s | %-10s | %s\n" "File Name" "Type" "Size" "Status"
     echo "--------------------------------------------------------------------------------"
 
     for item in "${items[@]}"; do
         local target_file="${target_dir}/${item}"
         if [[ ! -e "${target_file}" && ! -L "${target_file}" ]]; then
-            printf "%-25s | %-10s | %-10s | ${RED}THIẾU (Missing)${NC}\n" "${item}" "---" "---"
+            printf "%-25s | %-10s | %-10s | ${RED}MISSING${NC}\n" "${item}" "---" "---"
             ERRORS=$((ERRORS + 1))
             continue
         fi
@@ -64,21 +64,21 @@ verify_list() {
         local size="$(wc -c < "${target_file}" | tr -d ' ')"
 
         if [[ ${size} -lt 50 ]]; then
-            printf "%-25s | %-10s | %-10s | ${YELLOW}RỖNG/QUÁ NGẮN${NC}\n" "${item}" "${type}" "${size}B"
+            printf "%-25s | %-10s | %-10s | ${YELLOW}EMPTY/TOO SHORT${NC}\n" "${item}" "${type}" "${size}B"
             ERRORS=$((ERRORS + 1))
         else
-            printf "%-25s | %-10s | %-10s | ${GREEN}HỢP LỆ (OK)${NC}\n" "${item}" "${type}" "${size}B"
+            printf "%-25s | %-10s | %-10s | ${GREEN}VALID (OK)${NC}\n" "${item}" "${type}" "${size}B"
         fi
     done
 }
 
-verify_list "${TARGET_RULES_DIR}" "Rules Quy Tắc P0/P1" "${REQUIRED_RULES[@]}"
-verify_list "${TARGET_AGENTS_DIR}" "Agents Tác Tử Chuyên Môn" "${REQUIRED_AGENTS[@]}"
+verify_list "${TARGET_RULES_DIR}" "Governance Rules (P0/P1)" "${REQUIRED_RULES[@]}"
+verify_list "${TARGET_AGENTS_DIR}" "Specialist Agents" "${REQUIRED_AGENTS[@]}"
 
 echo "--------------------------------------------------------------------------------"
 if [[ ${ERRORS} -eq 0 ]]; then
-    echo -e "${GREEN}🎉 100% QUY TẮC VÀ TÁC TỬ ENTERPRISE SẴN SÀNG HOẠT ĐỘNG!${NC}"
+    echo -e "${GREEN}🎉 100% OF ENTERPRISE RULES AND AGENTS ARE VERIFIED AND READY!${NC}"
 else
-    echo -e "${RED}⚠️  Phát hiện ${ERRORS} lỗi. Vui lòng chạy ./scripts/install.sh để đồng bộ lại.${NC}"
+    echo -e "${RED}⚠️  Detected ${ERRORS} issue(s). Please run ./scripts/install.sh to resynchronize.${NC}"
     exit 1
 fi

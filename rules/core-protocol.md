@@ -79,6 +79,9 @@ Agent activated → Check frontmatter "skills:" → Read SKILL.md (INDEX) → Re
 
 - Agents: `.agents/agent/` (Project)
 - Skills: `.agents/skills/` (Project)
+- Knowledge: `.agents/knowledge/` (Project domain context, architecture specs, and workflow traces)
+- Workflows: `.agents/workflows/` (Project standard operating procedures and runbooks)
+- Rules: `.agents/rule/` (Project-level coding conventions and standards)
 - Memory: `.agents/memory/` (Project)
 - Runtime Scripts: `.agents/skills/<skill>/scripts/`
 

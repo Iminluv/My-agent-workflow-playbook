@@ -15,46 +15,46 @@ updated: 2026-11-13
 type: "playbook"
 ---
 
-# 📘 Cẩm Nang Vận Hành Hệ Thống Đa Tác Tử Chuẩn Enterprise (Multi-Agent SOP v2.0)
+# 📘 Enterprise Multi-Agent Operating Playbook (SOP v2.0)
 
-> [!ABSTRACT] TỔNG QUAN HỆ THỐNG
-> Tài liệu này chuẩn hóa **Quy trình Vận hành Tiêu chuẩn (SOP)** cho việc điều phối hệ sinh thái tác tử AI trong môi trường **Google Antigravity** theo các tiêu chuẩn kỹ nghệ phần mềm doanh nghiệp hàng đầu: **OWASP LLM Top 10 (2025)**, **NIST AI RMF 1.0** và **GitOps / Decoupled CI/CD**.
+> [!ABSTRACT] SYSTEM OVERVIEW
+> This playbook establishes the **Standard Operating Procedure (SOP)** for orchestrating collaborative AI agent swarms within the **Google Antigravity** runtime. It synthesizes top-tier enterprise software engineering guidelines: **OWASP LLM Top 10 (2025)**, **NIST AI RMF 1.0**, and **GitOps / Decoupled CI/CD Pipelines**.
 > 
-> Chuyển đổi toàn diện từ mô hình *"AI can thiệp trực tiếp vào mã nguồn trên main"* sang mô hình *"Hệ thống đa tác tử phân quyền, cô lập nhánh, ràng buộc hợp đồng và có cổng kiểm soát của con người (Human-in-the-Loop Planning Gate)"*.
+> It marks a complete paradigm shift from *"ad-hoc autonomous AI agents modifying source code directly on main"* to a *"governed, branch-isolated, contract-bound multi-agent ecosystem with Human-in-the-Loop Planning Gates"*.
 
 ---
 
-## 🏗️ 1. Sơ Đồ Kiến Trúc Hệ Thống Đa Tầng (Enterprise 4-Tier Architecture)
+## 🏗️ 1. Multi-Tier Enterprise System Architecture
 
 ```mermaid
 flowchart TD
-    subgraph Tier0["👤 Người Dùng & Bên Thứ Ba (Human Governance)"]
-        Prompt["Yêu cầu nghiệp vụ (User Request)"]
-        ProceedGate{"Cổng Duyệt Proceed (UI Barrier)"}
+    subgraph Tier0["👤 Human Governance & Stakeholders"]
+        Prompt["Business Request (User Prompt)"]
+        ProceedGate{"Approval Gate (UI Proceed Button)"}
     end
 
-    subgraph Tier1["🏛️ Tầng Quản Trị Bất Biến (Governance Engine)"]
-        R_Route["[[request-routing.md]]: Phân loại & Chọn Chuyên gia"]
-        R_Gate["[[planning-gate.md]]: Ma trận Phân công & Proceed Gate"]
-        R_Git["[[git-safety.md]]: Cấm tuyệt đối can thiệp vào main (P0)"]
-        R_Contract["[[delegation-contract.md]]: Hợp đồng phân quyền ranh giới file"]
-        R_Impact["[[impact-analysis.md]]: Nguyên tắc One Change, Two Sides"]
+    subgraph Tier1["🏛️ Persistent Governance Engine"]
+        R_Route["[[request-routing.md]]: Autonomous Classifier & Specialist Router"]
+        R_Gate["[[planning-gate.md]]: Delegation Matrix & Proceed Gate"]
+        R_Git["[[git-safety.md]]: Strict Prohibition of Direct Edits on Main (P0)"]
+        R_Contract["[[delegation-contract.md]]: File Path Isolation Contract"]
+        R_Impact["[[impact-analysis.md]]: One Change, Two Sides Principle"]
     end
 
-    subgraph Tier2["🎯 Tầng Điều Phối (Orchestrator)"]
+    subgraph Tier2["🎯 Coordinator Tier (Orchestrator)"]
         Orch["Orchestrator Agent"]
-        Phase0["Phase 0: Git Setup & Branch Isolation"]
-        Synthesizer["Tích hợp mã nguồn, Nghiệm thu Test & Viết Deliverable"]
+        Phase0["Phase 0: Workspace & Git Setup Gate"]
+        Synthesizer["Integration, Empirical Testing & Deliverables Synthesis"]
     end
 
-    subgraph Tier3["⚡ Tầng Tác Tử Chuyên Môn (Dedicated Subagents)"]
-        SA_Sec["🛡️ security-auditor<br><i>Audit & Vá lỗ hổng bảo mật</i>"]
-        SA_Back["⚙️ backend-specialist<br><i>API, Schema & Logic nghiệp vụ</i>"]
-        SA_Front["🎨 frontend-specialist<br><i>Giao diện, Performance & i18n</i>"]
+    subgraph Tier3["⚡ Dedicated Specialist Subagents"]
+        SA_Sec["🛡️ security-auditor<br><i>Threat Modeling & Security Patching</i>"]
+        SA_Back["⚙️ backend-specialist<br><i>APIs, Schemas & Business Logic</i>"]
+        SA_Front["🎨 frontend-specialist<br><i>UI/UX, Performance & i18n</i>"]
         SA_DevOps["🚀 devops-engineer<br><i>CI/CD, Branch Protection & Rollback</i>"]
     end
 
-    subgraph Tier4["🛡️ Tầng Tự Động Hóa (Decoupled CI/CD Pipeline)"]
+    subgraph Tier4["🛡️ Automated Pipeline Tier (Decoupled CI/CD)"]
         PR["Pull Request: feat/* -> main"]
         CIGate["CI Gate: Lint + TruffleHog + Pytest + Build"]
         Deploy["CD Pipeline: Zero-Downtime Deploy & Rollback"]
@@ -63,9 +63,9 @@ flowchart TD
     Prompt --> R_Route
     R_Route --> Orch
     Orch --> R_Gate
-    R_Gate -->|Xuất bản Kế hoạch| ProceedGate
-    ProceedGate -->|Từ chối / Điều chỉnh| Orch
-    ProceedGate -->|Phê duyệt: Click Proceed| Phase0
+    R_Gate -->|Publish Plan Artifact| ProceedGate
+    ProceedGate -->|Reject / Modify| Orch
+    ProceedGate -->|Approve: Click Proceed| Phase0
     Phase0 -->|Checkout feat/*| Orch
     Orch -->|invoke_subagent + Contract| SA_Sec
     Orch -->|invoke_subagent + Contract| SA_Back
@@ -80,71 +80,71 @@ flowchart TD
 
 ---
 
-## 📋 2. Quy Trình Vận Hành Tiêu Chuẩn 6 Bước (The 6-Step Enterprise SOP)
+## 📋 2. The 6-Step Enterprise Standard Operating Procedure
 
-### Bước 1: Phân Loại & Điều Hướng (Request Classification)
-- Mọi yêu cầu đều được quy tắc `[[request-routing.md]]` phân tích tự động.
-- Với các tác vụ phức tạp (kiểm toán, refactor, tính năng đa tầng), tự động trao quyền cho `orchestrator`.
+### Step 1: Autonomous Request Classification & Routing
+- Every user request is classified autonomously per `[[request-routing.md]]`.
+- Complex multi-domain requests (audits, refactoring, cross-stack features) route immediately to the `orchestrator`.
 
-### Bước 2: Cam Kết Lập Tức Tại Lượt Đầu (Turn-1 Constraint)
-- Bắt buộc phát thông báo công khai ngay tại lượt trả lời đầu tiên:
+### Step 2: Immediate Turn-1 Announcement Constraint
+- The AI must publicly announce its active persona and skills in its **very first turn**:
   ```markdown
   🤖 **Applying knowledge of `@[specialist-agent]`...**
   📚 **Using skills: `@[skill-1]` + `@[skill-2]`...**
   ```
-- Tuyệt đối không chạy chuỗi công cụ âm thầm rồi mới thông báo ở cuối.
+- Executing silent tool loops before announcing persona is strictly forbidden.
 
-### Bước 3: Lập Ma Trận Phân Công & Dừng Tuyệt Đối (Planning Gate Barrier)
-- Lập ma trận đầy đủ các Phase (bắt đầu bằng **Phase 0: Workspace & Git Setup**).
-- Xuất bản ra Artifact với metadata `RequestFeedback: true`.
-- 🛑 **HARD STOP:** AI dừng ngay lập tức, không được tự ý thực thi mã trước khi người dùng bấm **Proceed**.
+### Step 3: Delegation Matrix Formulation & Hard Stop Barrier
+- Formulate a comprehensive phase breakdown starting with **Phase 0: Workspace & Git Safety Setup**.
+- Publish the plan to an artifact with metadata `"RequestFeedback": true`.
+- 🛑 **HARD STOP:** The AI halts all tool execution and waits for the user to click **Proceed**.
 
-### Bước 4: Thiết Lập Nhánh & Khởi Tạo Phân Quyền (Phase 0 Setup)
-- Ngay sau khi được duyệt, Orchestrator chạy lệnh:
+### Step 4: Phase 0 Setup & Contract-Bound Delegation
+- Immediately upon approval, the Orchestrator runs:
   ```bash
   git branch --show-current
   git checkout -b feat/<task-slug>-$(date +%Y%m%d)
   ```
-- **Kích hoạt Subagents kèm Delegation Contract:**
-  Mỗi subagent được giao vùng file riêng biệt (Disjoint Sets), không bao giờ để 2 subagents cùng sửa 1 file.
+- **Dispatch Subagents with Delegation Contracts:**
+  Every subagent receives an explicit contract allocating exclusive, disjoint file boundaries (`Allowed File Paths`). Two concurrent subagents must never write to the same file.
 
-### Bước 5: Thực Thi Phân Quyền, Báo Checkpoint & Chống Silent Loop
-- Báo cáo checkpoint rõ ràng tại ranh giới mỗi Phase.
-- Áp dụng **Anti-Silent Circuit Breaker**: Không chạy quá 8 tool calls liên tiếp mà không phát báo cáo trung gian.
+### Step 5: Checkpoint Transparency & Anti-Silent Circuit Breaker
+- Announce public checkpoint banners at each phase transition.
+- Enforce the circuit breaker: Never exceed 8 tool calls consecutively without visible interim progress text.
 
-### Bước 6: Nghiệm Thu Thực Nghiệm, Tạo PR & Kích Hoạt CI Gate
-- Kiểm thử toàn diện (`pytest`, `npm test`).
-- Kiểm tra `git diff --stat` và `git status -s`.
-- Tạo Pull Request để kích hoạt **CI Gate tự động** (Linting, Secret Scan, Regression Tests).
+### Step 6: Empirical Acceptance, PR Packaging & Automated CI Gate
+- Run all regression test suites (`pytest`, `npm test`).
+- Review `git status -s` and `git diff --stat`.
+- Open a Pull Request to trigger the automated **2-Stage CI Gate** (linting, secret scan, build validation).
 
 ---
 
-## 📊 3. Bảng Đối Chiếu Thực Chiến: 3 Dự Án Điển Hình
+## 📊 3. Empirical Comparative Analysis: 3 Real-World Projects
 
-| Tiêu Chí So Sánh | ❌ Phiên Cũ (`249a2be1`) | ⚠️ Phiên Chuẩn Cũ (`7ef1749f`) | ⚠️ Dự Án `tinktinkai` | 🏆 Enterprise SOP v2.0 |
+| Dimension | ❌ Legacy Session (`249a2be1`) | ⚠️ Unhardened Run (`7ef1749f`) | ⚠️ Production App (`tinktinkai`) | 🏆 Enterprise SOP v2.0 |
 | :--- | :--- | :--- | :--- | :--- |
-| **Cơ chế Điều Phối** | Đơn khối (Monolithic) | Đa tác tử (Subagents song song) | Đa tầng (Monorepo FE/BE) | Đa tác tử phân quyền + Contract |
-| **An Toàn Nhánh Git** | ❌ Sửa trực tiếp trên `main` | ❌ Sửa trực tiếp trên `main` | ⚠️ Có rule nhưng CI deploy thẳng `main` | ✅ **Bắt buộc checkout `feat/*` tại Phase 0** |
-| **Phân Quyền File** | Không phân quyền | ❌ 3 subagents cùng mode `inherit` | ⚠️ Dễ lệch schema API | ✅ **Disjoint File Sets via Contract** |
-| **Bảo Mật Secrets** | Chưa kiểm soát | Chưa kiểm soát | ❌ Commit file `.env` vào backend | ✅ **Zero-Secret Commit + TruffleHog** |
-| **Đường Ống CI/CD** | ❌ Không có | ❌ Không có | ⚠️ Deploy-only (không có test gate) | ✅ **2-Stage: CI Test Gate + CD Rollback** |
-| **Đồng Bộ Full-Stack** | Không kiểm tra | Kiểm tra thủ công | ✅ Có tài liệu Impact Analysis | ✅ **Rule `impact-analysis.md` (P1)** |
+| **Coordination Model** | Monolithic (single thread) | Multi-Agent (concurrent subagents) | Cross-Stack Monorepo | Multi-Agent with Delegation Contracts |
+| **Git Branch Safety** | ❌ Modified directly on `main` | ❌ Committed directly on `main` | ⚠️ Guidelines exist, but CI deploys `main` | ✅ **Mandatory checkout `feat/*` in Phase 0** |
+| **File Path Isolation** | No isolation | ❌ 3 subagents in shared `inherit` | ⚠️ Risk of schema divergence | ✅ **Disjoint File Sets via Contracts** |
+| **Secret Governance** | Unchecked | Unchecked | ❌ `.env` file committed to backend | ✅ **Zero-Secret Commit + TruffleHog CI Gate** |
+| **CI/CD Pipeline** | ❌ None | ❌ None | ⚠️ Deploy-only (no automated test gate) | ✅ **2-Stage: CI Test Gate + CD Rollback** |
+| **Full-Stack Sync** | Unchecked | Manual review | ✅ Documented Impact Analysis | ✅ **Enforced `impact-analysis.md` (P1)** |
 
 ---
 
-## 🛠️ 4. Hướng Dẫn Kích Hoạt & Đồng Bộ (Quick Start)
+## 🛠️ 4. Quick Start & Tooling Reference
 
-Kho lưu trữ `Agent-test` đã được trang bị bộ công cụ tự động hóa đầy đủ:
+The `Agent-test` repository provides turnkey management tools:
 
 ```bash
 cd ~/Vscode/Agent-test
 
-# Xem danh sách lệnh hỗ trợ
+# View available operational commands
 make help
 
-# Cài đặt và kích hoạt hệ thống quy tắc v2.0 (Tạo Symlink)
+# Bootstrap and synchronize v2.0 governance rules and agents (Symlink)
 make install
 
-# Kiểm tra tính toàn vẹn của 100% rules và agents
+# Verify 100% integrity across all rules and specialist agents
 make verify
 ```

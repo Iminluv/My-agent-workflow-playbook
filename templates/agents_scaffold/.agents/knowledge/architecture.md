@@ -1,21 +1,22 @@
-# 🏗️ Kiến Trúc Dự Án & Bản Đồ Tương Tác (Project Architecture)
+# 🏗️ Project Architecture & Data Flow Specification
 
-> Tài liệu tri thức nền tảng giúp AI Agents hiểu rõ ranh giới các tầng và luồng dữ liệu mà không cần đoán mò.
-
----
-
-## 1. Tổng Quan Hệ Thống
-
-- **Mục tiêu dự án:** [Tóm tắt 1-2 câu về giải pháp]
-- **Mô hình kiến trúc:** Layered Architecture / Microservices / Monorepo
-- **Ngôn ngữ & Framework:**
-  - Backend: [e.g. Python / FastAPI / Node.js]
-  - Frontend: [e.g. React / TypeScript / Tailwind]
-  - Database: [e.g. PostgreSQL / Redis]
+> Foundational architectural documentation enabling AI Agents to understand system boundaries, interfaces, and end-to-end data flows without ambiguity.
 
 ---
 
-## 2. Luồng Dữ Liệu Khép Kín (Data Flow)
+## 1. System Overview
+
+- **Project Goal:** [Concise 1-2 sentence description of the system's purpose]
+- **Architecture Model:** Layered Architecture / Microservices / Event-Driven / Monorepo
+- **Tech Stack:**
+  - Backend: [e.g., Python / FastAPI / Node.js]
+  - Frontend: [e.g., React / TypeScript / Vite / Tailwind CSS]
+  - Database & Cache: [e.g., PostgreSQL / Redis]
+  - Background Workers: [e.g., Celery / Temporal / BullMQ]
+
+---
+
+## 2. End-to-End Data Flow
 
 ```mermaid
 sequenceDiagram
@@ -25,16 +26,17 @@ sequenceDiagram
     participant Worker as ⚡ Async Worker
 
     Client->>API: HTTP Request (JSON Payload)
-    API->>API: Validation (Schema / Pydantic)
-    API->>DB: Query / Mutation
-    API->>Worker: Dispatch Async Task (if >200ms)
+    API->>API: Input Validation (Pydantic / Zod Schema)
+    API->>DB: Query / Mutation (SQLAlchemy ORM)
+    API->>Worker: Dispatch Async Task (if execution >200ms)
     API-->>Client: HTTP Response (Consistent Shape)
 ```
 
 ---
 
-## 3. Ranh Giới Thư Mục (Directory Boundaries)
+## 3. Directory Boundaries & Ownership
 
-- `src/` hoặc `backend/`: Mã nguồn máy chủ và logic nghiệp vụ.
-- `frontend/` hoặc `web/`: Giao diện người dùng và trạng thái client.
-- `tests/`: Bộ kiểm thử tự động (Unit, Integration, E2E).
+- `src/` or `backend/`: Server-side business logic, routers, models, and services.
+- `frontend/` or `web/`: Client-side UI components, hooks, state, and assets.
+- `tests/`: Automated test suites (Unit, Integration, and E2E regression tests).
+- `.agents/knowledge/`: Domain-specific documentation, workflow traces, and API contracts.
