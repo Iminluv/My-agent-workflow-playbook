@@ -36,7 +36,7 @@ Before writing or editing UI (components, pages, styles — web or mobile), a **
 
 - Purple Ban (no purple by default — brand/brief override allowed)
 - Template Ban (no standard layouts)
-- Anti-cliché rules
+- Anti-cliche rules
 - Deep Design Thinking protocol
 
 > 🔴 **For design work:** Open and READ the agent file. Rules are there.
