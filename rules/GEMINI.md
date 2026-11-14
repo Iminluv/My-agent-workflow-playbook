@@ -9,6 +9,7 @@ Use the packaged AG Kit components as follows:
 5. Preserve user approval checkpoints in planning, deployment, destructive operations, and security-sensitive work.
 6. The bundled MCP file is an example only. Never activate placeholder credentials.
 7. The bundled `PreToolUse` hook blocks only clearly destructive root-disk operations and does not replace Antigravity's native permission controls.
-8. Enforce phase transparency: for multi-phase tasks, each phase boundary MUST announce its active specialist and skills in chat, or invoke dedicated subagents (`invoke_subagent`). Never run silent multi-tool loops (>8 tools) across phases.
+8. Enforce True Delegation & Phase Transparency: For multi-phase implementation tasks, each phase assigned to a specialist MUST dispatch a dedicated subagent (`invoke_subagent`) or swarm worker (`swarm` action: `add`) with an exclusive Delegation Contract. Merely printing specialist announcement banners in chat without dispatching an actual subagent or worker is strictly prohibited (Pretense Violation).
+9. Strict Anti-Silent Circuit Breaker: Never execute more than 5 consecutive tool calls without outputting visible interim progress text to the user.
 
 Prefer the `orchestrate` or `coordinate` command for complex multi-domain work. Use at least three independent specialists only when their tasks can be separated cleanly, then synthesize and verify the result.

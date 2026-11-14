@@ -60,8 +60,8 @@ Before executing any heavy inspection tools, modifying code, or running test sui
 1. **Phase 0 is Mandatory:**
    - In Turn 1 following user approval, the Orchestrator runs: `git branch --show-current`.
    - If on `main` or `master`, create a new branch: `git checkout -b feat/<task-slug>-<date>`.
-2. **Phase Boundary Checkpoints:**
-   Every time execution transitions to a new phase or domain, announce publicly in chat:
+2. **Phase Boundary Checkpoints & Mandatory Dispatch:**
+   - Every time execution transitions to an implementation phase, announce publicly in chat:
    ```markdown
    ---
    ### 🚀 Phase [X]: [Phase Name]
@@ -69,5 +69,8 @@ Before executing any heavy inspection tools, modifying code, or running test sui
    📚 **Using skills: `@[skill-1]` + `@[skill-2]`...**
    > **Objective:** [Concise 1-2 sentence summary of phase scope]
    ```
-3. **Anti-Silent Circuit Breaker:** Never execute more than 8 consecutive tool calls without interim progress updates to the user.
+   - 🛑 **MANDATORY DISPATCH (No-Pretense Gate):** The Phase checkpoint announcement MUST be accompanied in the same or immediately following step by the actual dispatch tool call (`invoke_subagent` or `swarm action: 'add'`) with the structured Delegation Contract.
+   - **STRICTLY FORBIDDEN:** The Orchestrator MUST NEVER emit a specialist announcement and then execute the code implementation itself in the coordinator thread (*Pretense Violation*).
+3. **Anti-Silent Circuit Breaker:** Never execute more than 5 consecutive tool calls without interim progress updates to the user.
 4. **Contract-Based Delegation:** Every subagent must receive a contract enforcing `Allowed File Paths` per `rules/delegation-contract.md`.
+5. **Coordinator Synthesis Monopoly:** Specialist subagents write code within their isolated scopes; the Orchestrator remains the sole authority for final git validation, test suite execution, and deliverable reporting in Phase 4.

@@ -105,12 +105,12 @@ flowchart TD
   git branch --show-current
   git checkout -b feat/<task-slug>-$(date +%Y%m%d)
   ```
-- **Dispatch Subagents with Delegation Contracts:**
-  Every subagent receives an explicit contract allocating exclusive, disjoint file boundaries (`Allowed File Paths`). Two concurrent subagents must never write to the same file.
+- **Dispatch Subagents with Delegation Contracts (P0 Mandatory):**
+  Every implementation phase MUST dispatch a dedicated subagent (`invoke_subagent`) or swarm worker (`swarm add`). The coordinator is **strictly prohibited from directly writing application code**. Every subagent receives an explicit contract allocating exclusive, disjoint file boundaries (`Allowed File Paths`). Two concurrent subagents must never write to the same file.
 
 ### Step 5: Checkpoint Transparency & Anti-Silent Circuit Breaker
-- Announce public checkpoint banners at each phase transition.
-- Enforce the circuit breaker: Never exceed 8 tool calls consecutively without visible interim progress text.
+- Announce public checkpoint banners accompanied by the actual dispatch tool call (`invoke_subagent` or `swarm add`).
+- Enforce the circuit breaker: Never exceed 5 tool calls consecutively without visible interim progress text to the user.
 
 ### Step 6: Empirical Acceptance, PR Packaging & Automated CI Gate
 - Run all regression test suites (`pytest`, `npm test`).

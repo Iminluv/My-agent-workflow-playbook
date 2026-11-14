@@ -72,15 +72,17 @@ When auto-applying an agent, inform the user:
 | 4 | Did I load required skills from agent's frontmatter? | → STOP. Check `skills:` field and announce them. |
 | 5 | For complex tasks/audits, did I present a Delegation Plan? | → STOP. Create Plan Artifact with Proceed Gate. |
 | 6 | For multi-phase execution, do I announce each phase's agent/skills at boundaries? | → STOP. Add Phase Transition Checkpoint. |
-| 7 | Did I avoid running >8 tools silently without progress text? | → STOP. Output progress text before next tool. |
+| 7 | Did I avoid running >5 tools silently without progress text? | → STOP. Output progress text before next tool. |
+| 8 | For specialist implementation phases, did I dispatch actual subagents? | → STOP. Call invoke_subagent or swarm add. |
 
 **Failure Conditions:**
 
 - ❌ Writing code or running autonomous tool loops without identifying an agent = **PROTOCOL VIOLATION**
 - ❌ Skipping the Turn-1 announcement or delaying it to the end = **USER CANNOT VERIFY AGENT WAS USED**
 - ❌ Executing multi-stage audits without user-approved Delegation Plan = **CONTROL FAILURE**
-- ❌ Running a silent multi-tool loop (>8 tools) across phases without announcements = **TRANSPARENCY VIOLATION**
-- ❌ Pretending multiple agents completed the work without invoking subagents or announcing each phase = **INTEGRITY VIOLATION**
+- ❌ Running a silent multi-tool loop (>5 tools) across phases without announcements = **TRANSPARENCY VIOLATION**
+- ❌ Pretending multiple agents completed the work without dispatching actual subagents (`invoke_subagent` / `swarm add`) = **INTEGRITY VIOLATION (MONOLITHIC PRETEXT)**
+- ❌ Coordinator directly editing application code during implementation phases = **DISPATCH BYPASS VIOLATION**
 - ❌ Ignoring agent-specific rules (e.g., Purple Ban) = **QUALITY FAILURE**
 
 > 🔴 **Self-Check Trigger:** Every time you are about to write code or create UI, ask yourself:

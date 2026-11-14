@@ -38,16 +38,19 @@ Agent activated → Check frontmatter "skills:" → Read SKILL.md (INDEX) → Re
 
 ### 1.2 Phase Transition & Anti-Silent Execution Protocol (MANDATORY)
 
-- **Phase Boundary Announcement:** In multi-phase or multi-domain tasks, announcements are **NOT** a one-time event for Turn 1. Every time execution crosses a phase or domain boundary, the AI **MUST** emit an explicit transition checkpoint before calling tools in that phase:
+- **Phase Boundary Announcement & Mandatory Dispatch:** In multi-phase tasks, announcements are **NOT** a one-time event for Turn 1. Every time execution crosses a phase or domain boundary, the AI **MUST** emit an explicit transition checkpoint before calling tools in that phase:
   ```markdown
   ---
   ### 🚀 Phase [X]: [Phase Name]
   🤖 **Applying knowledge of `@[specialist-agent]`...**
   📚 **Using skills: `@[skill-1]` + `@[skill-2]`...**
   ```
-- **Circuit Breaker against Silent Tool Loops:** An agent **MUST NOT** execute more than 8 tool calls consecutively without outputting visible interim progress text to the user.
+- **🛑 Anti-Pretense Mandate (No Simulated Execution):**
+  - Announcing a specialist in a phase checkpoint requires an immediate accompanying `invoke_subagent` or `swarm action: 'add'` call with a Delegation Contract.
+  - The Orchestrator is **STRICTLY FORBIDDEN** from announcing a specialist and then performing the source code edits itself in the main coordinator thread (*Pretense Violation*).
+- **Circuit Breaker against Silent Tool Loops:** An agent **MUST NOT** execute more than 5 tool calls consecutively without outputting visible interim progress text to the user.
 - **Transparency Mandate:** The user must be able to verify at all times:
-  1. Which specialist agent is currently active.
+  1. Which specialist agent is currently active (with verified subagent/worker ID).
   2. What skills are loaded for the current phase.
   3. What step/milestone is currently being executed.
 
