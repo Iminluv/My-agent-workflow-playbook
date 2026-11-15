@@ -110,11 +110,13 @@ flowchart TD
 
 ### Step 5: Checkpoint Transparency & Anti-Silent Circuit Breaker
 - Announce public checkpoint banners accompanied by the actual dispatch tool call (`invoke_subagent` or `swarm add`).
-- Enforce the circuit breaker: Never exceed 5 tool calls consecutively without visible interim progress text to the user.
+- Enforce the circuit breaker: Never exceed 4 tool calls consecutively without visible interim progress text to the user.
+- Enforce scratch file isolation: All temporary generator scripts, intermediate assets, and diagnostic fixtures must reside in `<Artifact Directory Path>/scratch/` or `/tmp/`, never in the repository root.
 
-### Step 6: Empirical Acceptance, PR Packaging & Automated CI Gate
-- Run all regression test suites (`pytest`, `npm test`).
-- Review `git status -s` and `git diff --stat`.
+### Step 6: Empirical Acceptance, Deliverable Verification & Automated CI Gate
+- Mandatory Pre-Delivery Verification: Validate all generated deliverables (`.docx`, `.xlsx`, `.pdf`, `.md`, `.txt`) with `./scripts/verify-deliverable.sh <path>` before presenting to users.
+- Run all regression test suites (`pytest`, `npm test`, `make verify`).
+- Review `git status -s` and `git diff --stat` to verify no scratch files leaked into the working tree.
 - Open a Pull Request to trigger the automated **2-Stage CI Gate** (linting, secret scan, build validation).
 
 ---
@@ -147,4 +149,7 @@ make install
 
 # Verify 100% integrity across all rules and specialist agents
 make verify
+
+# Empirically verify any generated deliverable before user presentation
+./scripts/verify-deliverable.sh path/to/document.docx
 ```

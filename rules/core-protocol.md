@@ -48,7 +48,8 @@ Agent activated → Check frontmatter "skills:" → Read SKILL.md (INDEX) → Re
 - **🛑 Anti-Pretense Mandate (No Simulated Execution):**
   - Announcing a specialist in a phase checkpoint requires an immediate accompanying `invoke_subagent` or `swarm action: 'add'` call with a Delegation Contract.
   - The Orchestrator is **STRICTLY FORBIDDEN** from announcing a specialist and then performing the source code edits itself in the main coordinator thread (*Pretense Violation*).
-- **Circuit Breaker against Silent Tool Loops:** An agent **MUST NOT** execute more than 5 tool calls consecutively without outputting visible interim progress text to the user.
+- **Circuit Breaker against Silent Tool Loops:** An agent **MUST NOT** execute more than 4 consecutive tool calls without outputting visible interim progress text to the user.
+- **Scratch Directory Hygiene & Isolation:** Generator scripts, intermediate assets, and temporary test files must strictly reside in `<Artifact Directory Path>/scratch/` or `/tmp/`. Never generate scratch code or dump intermediate build artifacts in the project root or tracked workspace paths.
 - **Transparency Mandate:** The user must be able to verify at all times:
   1. Which specialist agent is currently active (with verified subagent/worker ID).
   2. What skills are loaded for the current phase.

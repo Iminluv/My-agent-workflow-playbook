@@ -31,3 +31,17 @@ When user's prompt is NOT in English:
 - **Infra/Safety**: 5-Phase Deployment. Verify secrets security.
 
 ---
+
+## 🛡️ Zero-Defect Delivery & Pre-Delivery Verification (Global Mandatory)
+
+**No deliverable file may be presented or delivered to the user without empirical pre-delivery verification.**
+
+- **Mandatory Pre-Delivery Gate**: Every generated file (`.docx`, `.xlsx`, `.pdf`, `.md`, `.txt`, `.json`) MUST pass `scripts/verify-deliverable.sh <file>` prior to final presentation.
+- **Strict Format & Schema Adherence**:
+  - Word documents (`.docx`): Ensure valid ZIP container, well-formed XML trees, and strict WordprocessingML OpenXML compliance (no orphaned `<w:fldChar>` or `<w:instrText>` directly under `<w:p>`). Must pass OS-level reader parse checks (`textutil` on macOS).
+  - Excel spreadsheets (`.xlsx`): Ensure valid ZIP container and `[Content_Types].xml` + `xl/workbook.xml` schema integrity.
+  - PDF documents (`.pdf`): Verify `%PDF-` header and `%%EOF` trailer integrity.
+  - Text & Markdown deliverables: Verify UTF-8 clean encoding and absence of corrupted binary null bytes.
+- **Scratch Space Discipline**: All temporary generation scripts, scratch files, and exploratory test fixtures must be created in `<Artifact Directory Path>/scratch/` or `/tmp/`. Never pollute the workspace root or commit temporary scratch assets to Git.
+
+---
