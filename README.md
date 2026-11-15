@@ -1,18 +1,22 @@
-# 🤖 Antigravity Multi-Agent Workflow & Enterprise Governance Kit (v2.0)
+# 🤖 Antigravity Multi-Agent Workflow & Enterprise Governance Kit (v2.1)
 
-> Multi-agent orchestration rules, Human-in-the-Loop Planning Gate, and enterprise Standard Operating Procedures (SOP) for Google Antigravity.
+> Enterprise Standard Operating Procedures (SOP), Human-in-the-Loop Planning Gates, Native Tool Subagent Architecture, and Pre-Delivery Verification for Google Antigravity.
 
 ---
 
-## 📌 Overview
+## 📌 Executive Overview
 
-This repository standardizes collaboration principles between human engineers and autonomous AI agent teams:
-1. **Human-in-the-Loop Planning Gate:** Mandates that the AI formulate an explicit Delegation Matrix and pause execution at a "Proceed" barrier before modifying source code or running heavy tasks.
-2. **Phase 0 Git Branch Safety (P0):** Strictly prohibits direct edits or commits on `main` or `master`. Enforces isolated feature branches (`feat/*`).
-3. **True Multi-Agent Delegation:** Dispatches independent, specialized subagents (`security-auditor`, `backend-specialist`, `frontend-specialist`, `devops-engineer`) with disjoint file ownership contracts instead of monolithic execution.
-4. **Anti-Silent Execution & Transparency:** Enforces immediate Turn-1 skill announcements, phase boundary checkpoints, and circuit breakers against silent tool loops (>8 tools).
-5. **Decoupled CI/CD Architecture:** Provides 2-stage GitHub Actions templates (CI Gate on PRs with secret scanning and tests; CD on verified tags with health-check-driven rollback).
-6. **Obsidian SOP Playbook:** Comprehensive operational guide with native Mermaid architecture diagrams, callouts, and empirical real-world case studies.
+This repository establishes the definitive engineering governance framework between human engineers and autonomous AI agent swarms in Google Antigravity:
+
+1. **Human-in-the-Loop Planning Gate:** Mandates that the AI formulate an explicit Delegation Matrix and halt execution at a "Proceed" barrier before modifying source code or running non-trivial operations.
+2. **Phase 0 Git Branch Safety (P0):** Strictly prohibits direct modifications on `main` or `master`. Enforces isolated feature branches (`feat/*`).
+3. **True Multi-Agent Subagent Architecture (Anti-Pretense):** Dispatches genuine, independent subagents (`invoke_subagent`) bound by structured Delegation Contracts with disjoint file scopes. Strictly prohibits monolithic coordinators from faking specialist phase banners.
+4. **Native Antigravity Tool Integration (v2.1):** Centralizes all **20 enterprise specialist agents** directly in version control. All agents declare canonical Antigravity native tools (`read_file`, `edit_file`, `write_file`, `run_command`, `manage_task`, `search_web`), completely eliminating legacy Claude Code tool runtime crashes (`tool "Read" not found in registry`).
+5. **Strict Anti-Silent Circuit Breaker (≤4 Tools):** Enforces immediate Turn-1 text-first announcements and hard yields: agents must never exceed 4 consecutive tool calls without visible interim progress text.
+6. **Mandatory Pre-Delivery Verification (`verify-deliverable.sh`):** Zero-defect delivery standard. Every generated `.docx`, `.xlsx`, `.pdf`, or formatted document must empirically pass structural, ZIP container, and XML schema checks (preventing ECMA-376 OpenXML corruption) before user delivery.
+7. **Scratch File Isolation:** Mandates that all temporary generator scripts, intermediate assets, and diagnostic fixtures reside strictly in `<Artifact Directory Path>/scratch/` or `/tmp/`, preserving clean workspace trees.
+8. **Decoupled CI/CD Architecture:** Reusable 2-stage GitHub Actions pipelines (CI Gate with TruffleHog secret scanning and automated testing; CD with health-check rollbacks).
+9. **Obsidian-Compliant SOP Playbook:** Complete documentation with native Mermaid diagrams, Obsidian callouts, and empirical real-world audit case studies.
 
 ---
 
@@ -22,62 +26,138 @@ This repository standardizes collaboration principles between human engineers an
 .
 ├── WORKFLOW-PLAYBOOK.md        # 📘 Enterprise SOP playbook (Obsidian-compliant)
 ├── README.md                   # 📖 Documentation and onboarding guide
-├── Makefile                    # ⚡ Developer commands (make install, make verify)
+├── Makefile                    # ⚡ Automation targets (install, verify, scaffold)
 ├── skills-lock.json            # 🔒 Deterministic skill dependency lockfile
-├── rules/                      # 🏛️ Persistent governance rules for Antigravity
-│   ├── GEMINI.md               # Persistent constraints and specialist delegation
-│   ├── core-protocol.md        # Turn-1 constraints, path awareness, anti-silent loop
+├── rules/                      # 🏛️ Persistent governance rules (linked to Antigravity)
+│   ├── GEMINI.md               # Master rules: 4-tool circuit breaker, pre-delivery verification, anti-pretense
+│   ├── core-protocol.md        # Turn-1 constraints, path awareness, anti-silent loops, scratch isolation
 │   ├── planning-gate.md        # Phase 0 setup & Proceed gate approval barrier (v2.0)
 │   ├── git-safety.md           # P0 rule: strict prohibition of direct edits on main
-│   ├── delegation-contract.md  # Multi-agent prompt injection & file ownership contract
+│   ├── delegation-contract.md  # Subagent prompt injection & disjoint file ownership contracts
 │   ├── impact-analysis.md      # Full-stack "One Change, Two Sides" synchronization
-│   ├── request-routing.md      # Autonomous domain classifier and specialist router
-│   ├── universal-rules.md      # Global engineering constraints (Clean code, standards)
+│   ├── request-routing.md      # Autonomous domain classifier and specialist router checklist
+│   ├── universal-rules.md      # Global engineering constraints (Clean code, zero-defect delivery)
 │   ├── code-rules.md           # Implementation rules and Socratic gate
-│   ├── design-rules.md         # UI/UX engineering constraints
+│   ├── design-rules.md         # UI/UX engineering constraints (pure ASCII en-US)
 │   └── quick-reference.md      # High-speed lookup index for agents and skills
-├── agents/                     # 🤖 Specialist agent role definitions
-│   ├── orchestrator.md         # Multi-agent coordinator with trust boundary
-│   ├── backend-specialist.md   # Backend engineer with Step 0 branch check
-│   └── devops-engineer.md      # CI/CD and deployment engineer
+├── agents/                     # 🤖 Complete 20-Agent Enterprise Roster (Native Antigravity Tools)
+│   ├── orchestrator.md         # Multi-agent coordinator (mainAgent: true, direct edit prohibited)
+│   ├── backend-specialist.md   # APIs, database models, and server logic
+│   ├── code-archaeologist.md   # Legacy code refactoring and reverse engineering
+│   ├── database-architect.md   # Schema design, indexing, and migration
+│   ├── debugger.md             # Systematic debugging and root-cause analysis
+│   ├── devops-engineer.md      # CI/CD, deployment, and server management
+│   ├── documentation-writer.md # Technical documentation, API specs, and runbooks
+│   ├── explorer-agent.md       # Codebase reconnaissance and architecture audits
+│   ├── frontend-specialist.md  # React/Next.js architecture, UI/UX, and state
+│   ├── game-developer.md       # Game mechanics, 2D/3D graphics, and engines
+│   ├── mobile-developer.md     # React Native and Flutter cross-platform mobile
+│   ├── penetration-tester.md   # Offensive security, attack simulation, and red-team audits
+│   ├── performance-optimizer.md# Core Web Vitals, profiling, and bundle reduction
+│   ├── product-manager.md      # Requirements elicitation and PRDs
+│   ├── product-owner.md        # Roadmap management and backlog prioritization
+│   ├── project-planner.md      # Multi-phase project decomposition and task planning
+│   ├── qa-automation-engineer.md# E2E testing, test frameworks, and pipeline quality
+│   ├── security-auditor.md     # OWASP 2025 security audits and zero trust architecture
+│   ├── seo-specialist.md       # Generative Engine Optimization (GEO) and technical SEO
+│   └── test-engineer.md        # Unit/integration testing, TDD, and test suites
 ├── templates/                  # 📦 Reusable project templates
 │   ├── cicd/                   # Enterprise GitHub Actions workflows (CI Gate, Deploy)
 │   └── agents_scaffold/        # Standard .agents/ scaffold (knowledge, workflows)
 └── scripts/                    # ⚙️ Automation and validation tooling
-    ├── install.sh              # One-click bootstrap script (symlink/copy)
-    └── verify.sh               # Comprehensive integrity verification script
+    ├── install.sh              # Enterprise installer (symlink/copy with backup)
+    ├── verify.sh               # Static analysis tool: verifies rules, agents & tool registry
+    ├── verify-deliverable.sh   # Pre-delivery validator for .docx, .xlsx, .pdf & text integrity
+    └── scaffold.sh             # Project bootstrapper for .agents/ workflows and knowledge
 ```
 
 ---
 
-## 🚀 Quick Start & Synchronization
+## 🤖 Enterprise Agent Roster (20 Specialists)
 
-### Step 1: Clone Repository
+All agents are versioned directly in this repository and synchronized to `~/.gemini/config/plugins/ag-kit/agents/`:
+
+| Agent Name | Role Type | Primary Domain & Responsibilities | Native Tools Declared |
+| :--- | :--- | :--- | :--- |
+| **`orchestrator`** | Coordinator | Multi-agent synthesis, planning gates, and PR packaging | `read_file`, `edit_file`, `write_file`, `run_command`, `manage_task`, `search_web` |
+| **`backend-specialist`** | Subagent | Node.js, Python, REST/GraphQL APIs, Prisma, ORM schemas | Same native 6-tool suite |
+| **`code-archaeologist`** | Subagent | Legacy codebase excavation, dependency lineage, refactoring | Same native 6-tool suite |
+| **`database-architect`** | Subagent | Schema optimization, migrations, SQL, indexing strategy | Same native 6-tool suite |
+| **`debugger`** | Subagent | Root-cause analysis, crash dump inspection, memory leaks | Same native 6-tool suite |
+| **`devops-engineer`** | Subagent | CI/CD pipelines, Docker, GitHub Actions, server rollback | Same native 6-tool suite |
+| **`documentation-writer`**| Subagent | User documentation, API references, architecture guides | Same native 6-tool suite |
+| **`explorer-agent`** | Subagent | Read-only discovery, repo reconnaissance, structural audits | Same native 6-tool suite |
+| **`frontend-specialist`**| Subagent | React, Next.js App Router, Tailwind CSS, accessibility | Same native 6-tool suite |
+| **`game-developer`** | Subagent | Game design, Unity/Godot, WebGL, 2D/3D physics | Same native 6-tool suite |
+| **`mobile-developer`** | Subagent | React Native, Flutter, Expo, mobile platform conventions | Same native 6-tool suite |
+| **`penetration-tester`** | Subagent | Red team tactics, vulnerability exploitation, threat models | Same native 6-tool suite |
+| **`performance-optimizer`**| Subagent | Core Web Vitals, bundle optimization, memory profiling | Same native 6-tool suite |
+| **`product-manager`** | Subagent | User stories, acceptance criteria, MVP scope definition | Same native 6-tool suite |
+| **`product-owner`** | Subagent | Stakeholder alignment, roadmap prioritization, PRDs | Same native 6-tool suite |
+| **`project-planner`** | Subagent | Task breakdown, dependency graphs, execution milestones | Same native 6-tool suite |
+| **`qa-automation-engineer`**| Subagent | Playwright, Cypress, regression suites, automated QA | Same native 6-tool suite |
+| **`security-auditor`** | Subagent | OWASP Top 10, auth boundaries, encryption, supply chain | Same native 6-tool suite |
+| **`seo-specialist`** | Subagent | Technical SEO, structured data, GEO for AI search visibility | Same native 6-tool suite |
+| **`test-engineer`** | Subagent | TDD workflows, unit tests, Jest/Pytest, test coverage | Same native 6-tool suite |
+
+---
+
+## 🚀 Quick Start & Operations
+
+### Step 1: Install & Synchronize Governance
 ```bash
-git clone <YOUR_GITHUB_REPO_URL> ~/Vscode/Agent-test
 cd ~/Vscode/Agent-test
-```
 
-### Step 2: Run Automated Installation
-```bash
+# Symlink all 11 rules and 20 agents to ~/.gemini/config/plugins/ag-kit/
 make install
-```
-*   **Default Mode (Symlink):** Creates symbolic links to `~/.gemini/config/plugins/ag-kit/rules/` and `agents/`. Any updates in this repository take effect immediately across Antigravity sessions.
-*   **Static Copy Mode:** Run `make install-copy` to copy static files without symlinks.
-*   *Automated Backup:* Detects existing configurations and creates a safe timestamped backup.
 
-### Step 3: Verify Configuration Integrity
+# Or install via static copy mode
+make install-copy
+```
+
+### Step 2: Validate System Integrity
 ```bash
+# Runs full static analysis across all rules, agents, and YAML tool declarations
 make verify
 ```
+
+### Step 3: Verify Deliverables Pre-Delivery
+```bash
+# Validates OpenXML schemas, PDF trailers, and file encodings before shipping
+./scripts/verify-deliverable.sh path/to/document.docx
+```
+
+### Step 4: Scaffold New Projects
+```bash
+# Bootstrap standardized .agents/ knowledge and workflow directory in a target repo
+make scaffold-project TARGET=/path/to/target-project
+```
+
+---
+
+## 🛡️ Core Governance Protocols (At a Glance)
+
+```mermaid
+flowchart LR
+    Step1["1. Turn-1 Text Announcement"] --> Step2["2. Plan Artifact + Proceed Gate"]
+    Step2 --> Step3["3. Phase 0: feat/* Branch Checkout"]
+    Step3 --> Step4["4. Dispatch Subagents with Contracts"]
+    Step4 --> Step5["5. <= 4 Tools Circuit Breaker & Scratch Space"]
+    Step5 --> Step6["6. verify-deliverable.sh Pre-Delivery Gate"]
+```
+
+*   **No Pretense:** Coordinators never print specialist headers without dispatching real subagents.
+*   **No Silent Loops:** Never exceed 4 consecutive tool calls without emitting visible user progress text.
+*   **No Dirty Workspace:** Generators and temporary scripts run in `scratch/` or `/tmp/`, never root.
+*   **No Unverified Deliverables:** Formatted documents (`.docx`, `.xlsx`, `.pdf`) must pass `verify-deliverable.sh` before presentation.
 
 ---
 
 ## 📓 Integration with Obsidian
 
-The file `WORKFLOW-PLAYBOOK.md` is 100% compatible with **Obsidian**:
+The file [`WORKFLOW-PLAYBOOK.md`](file:///Users/iminluv/Vscode/Agent-test/WORKFLOW-PLAYBOOK.md) is 100% compatible with **Obsidian**:
 *   Full support for **Obsidian Callouts** (`[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!ABSTRACT]`).
-*   Interactive **Mermaid Diagrams** (multi-tier system architecture, sequential reactive loop).
+*   Interactive **Mermaid Diagrams** (system architecture, state flows, reactive loops).
 *   Bidirectional **Wikilinks** (`[[...]]`) to seamlessly link into your personal Knowledge Graph.
 
 Simply drag and drop `WORKFLOW-PLAYBOOK.md` into your Obsidian Vault to reference anytime.

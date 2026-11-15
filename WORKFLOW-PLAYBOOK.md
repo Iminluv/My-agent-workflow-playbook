@@ -1,6 +1,6 @@
 ---
 title: "Antigravity Multi-Agent Orchestration & Planning Gate Playbook"
-version: "2.0.0"
+version: "2.1.0"
 author: "Antigravity Engineering"
 tags:
   - "ai-agents"
@@ -10,17 +10,18 @@ tags:
   - "sop"
   - "enterprise-architecture"
   - "ci-cd"
+  - "governance"
 created: 2026-11-12
-updated: 2026-11-13
+updated: 2026-11-15
 type: "playbook"
 ---
 
-# 📘 Enterprise Multi-Agent Operating Playbook (SOP v2.0)
+# 📘 Enterprise Multi-Agent Operating Playbook (SOP v2.1)
 
 > [!ABSTRACT] SYSTEM OVERVIEW
 > This playbook establishes the **Standard Operating Procedure (SOP)** for orchestrating collaborative AI agent swarms within the **Google Antigravity** runtime. It synthesizes top-tier enterprise software engineering guidelines: **OWASP LLM Top 10 (2025)**, **NIST AI RMF 1.0**, and **GitOps / Decoupled CI/CD Pipelines**.
 > 
-> It marks a complete paradigm shift from *"ad-hoc autonomous AI agents modifying source code directly on main"* to a *"governed, branch-isolated, contract-bound multi-agent ecosystem with Human-in-the-Loop Planning Gates"*.
+> It marks a complete paradigm shift from *"ad-hoc autonomous AI agents modifying source code directly on main"* to a *"governed, branch-isolated, contract-bound multi-agent ecosystem with Human-in-the-Loop Planning Gates, verified native subagent tool resolution, and empirical pre-delivery deliverable verification"*.
 
 ---
 
@@ -34,24 +35,50 @@ flowchart TD
     end
 
     subgraph Tier1["🏛️ Persistent Governance Engine"]
-        R_Route["[[request-routing.md]]: Autonomous Classifier & Specialist Router"]
-        R_Gate["[[planning-gate.md]]: Delegation Matrix & Proceed Gate"]
+        R_Route["[[request-routing.md]]: Autonomous Classifier & Router Checklist"]
+        R_Gate["[[planning-gate.md]]: Delegation Matrix & Proceed Gate (v2.0)"]
         R_Git["[[git-safety.md]]: Strict Prohibition of Direct Edits on Main (P0)"]
         R_Contract["[[delegation-contract.md]]: File Path Isolation Contract"]
+        R_Universal["[[universal-rules.md]]: Zero-Defect Delivery & verify-deliverable.sh"]
         R_Impact["[[impact-analysis.md]]: One Change, Two Sides Principle"]
     end
 
     subgraph Tier2["🎯 Coordinator Tier (Orchestrator)"]
-        Orch["Orchestrator Agent"]
-        Phase0["Phase 0: Workspace & Git Setup Gate"]
-        Synthesizer["Integration, Empirical Testing & Deliverables Synthesis"]
+        Orch["Orchestrator Agent (Direct Implementation Prohibited)"]
+        Phase0["Phase 0: Workspace & Git Setup Gate (feat/*)"]
+        Synthesizer["Integration, Verification Suite & Deliverables Synthesis"]
     end
 
-    subgraph Tier3["⚡ Dedicated Specialist Subagents"]
-        SA_Sec["🛡️ security-auditor<br><i>Threat Modeling & Security Patching</i>"]
-        SA_Back["⚙️ backend-specialist<br><i>APIs, Schemas & Business Logic</i>"]
-        SA_Front["🎨 frontend-specialist<br><i>UI/UX, Performance & i18n</i>"]
-        SA_DevOps["🚀 devops-engineer<br><i>CI/CD, Branch Protection & Rollback</i>"]
+    subgraph Tier3["⚡ 20 Enterprise Specialist Agents (Native Tools)"]
+        subgraph CoreArch["Architecture & Core"]
+            SA_Exp["🔍 explorer-agent"]
+            SA_Arch["🏛️ code-archaeologist"]
+            SA_Debug["🐞 debugger"]
+        end
+        subgraph Engineering["Full-Stack Engineering"]
+            SA_Front["🎨 frontend-specialist"]
+            SA_Back["⚙️ backend-specialist"]
+            SA_DB["🗄️ database-architect"]
+            SA_Mobile["📱 mobile-developer"]
+            SA_Game["🎮 game-developer"]
+        end
+        subgraph Security["Security & Reliability"]
+            SA_Sec["🛡️ security-auditor"]
+            SA_Pen["⚔️ penetration-tester"]
+            SA_Perf["⚡ performance-optimizer"]
+            SA_DevOps["🚀 devops-engineer"]
+        end
+        subgraph QA["Testing & Quality"]
+            SA_QA["🧪 qa-automation-engineer"]
+            SA_Test["🔬 test-engineer"]
+        end
+        subgraph Product["Product & Strategy"]
+            SA_PM["📋 product-manager"]
+            SA_PO["🎯 product-owner"]
+            SA_Plan["🗺️ project-planner"]
+            SA_Doc["📝 documentation-writer"]
+            SA_SEO["🌐 seo-specialist"]
+        end
     end
 
     subgraph Tier4["🛡️ Automated Pipeline Tier (Decoupled CI/CD)"]
@@ -67,13 +94,9 @@ flowchart TD
     ProceedGate -->|Reject / Modify| Orch
     ProceedGate -->|Approve: Click Proceed| Phase0
     Phase0 -->|Checkout feat/*| Orch
-    Orch -->|invoke_subagent + Contract| SA_Sec
-    Orch -->|invoke_subagent + Contract| SA_Back
-    Orch -->|invoke_subagent + Contract| SA_Front
-    SA_Sec --> Synthesizer
-    SA_Back --> Synthesizer
-    SA_Front --> Synthesizer
-    Synthesizer --> PR
+    Orch -->|invoke_subagent + Contract| Tier3
+    Tier3 --> Synthesizer
+    Synthesizer -->|./scripts/verify-deliverable.sh| PR
     PR --> CIGate
     CIGate -->|All Green| Deploy
 ```
@@ -82,74 +105,155 @@ flowchart TD
 
 ## 📋 2. The 6-Step Enterprise Standard Operating Procedure
 
-### Step 1: Autonomous Request Classification & Routing
-- Every user request is classified autonomously per `[[request-routing.md]]`.
-- Complex multi-domain requests (audits, refactoring, cross-stack features) route immediately to the `orchestrator`.
+### Step 1: Autonomous Request Classification & Router Checklist
+* Every user request is classified autonomously per `[[request-routing.md]]`.
+* Complex multi-domain requests (audits, refactoring, cross-stack features, multi-step implementations) automatically activate the `orchestrator`.
+* **Router Checklist Gate:** The model must mentally complete the 8-item Router Checklist before taking action, confirming agent selection, rule loading, Turn-1 announcements, planning gate needs, and subagent delegation obligations.
 
-### Step 2: Immediate Turn-1 Announcement Constraint
-- The AI must publicly announce its active persona and skills in its **very first turn**:
+### Step 2: Immediate Turn-1 Announcement Constraint (Text-First)
+* The AI must publicly announce its active persona and skills in its **very first turn**, prior to or accompanied by its first tool call:
   ```markdown
   🤖 **Applying knowledge of `@[specialist-agent]`...**
   📚 **Using skills: `@[skill-1]` + `@[skill-2]`...**
   ```
-- Executing silent tool loops before announcing persona is strictly forbidden.
+* ❌ **Strictly Forbidden:** Running autonomous tool loops silently and announcing active skills retroactively at the end of execution is a major protocol violation.
 
 ### Step 3: Delegation Matrix Formulation & Hard Stop Barrier
-- Formulate a comprehensive phase breakdown starting with **Phase 0: Workspace & Git Safety Setup**.
-- Publish the plan to an artifact with metadata `"RequestFeedback": true`.
-- 🛑 **HARD STOP:** The AI halts all tool execution and waits for the user to click **Proceed**.
+* Formulate a structured phase breakdown starting with **Phase 0: Workspace & Git Safety Setup**.
+* Publish the execution plan to a markdown artifact with metadata:
+  ```json
+  "ArtifactMetadata": {
+    "RequestFeedback": true,
+    "UserFacing": true,
+    "Summary": "Enterprise multi-agent delegation plan and Git safety setup."
+  }
+  ```
+* 🛑 **HARD STOP (Immediate Tool Termination):** The AI must immediately halt tool execution upon publishing the artifact and wait for the human user to click the **Proceed** button or confirm explicitly in chat.
 
-### Step 4: Phase 0 Setup & Contract-Bound Delegation
-- Immediately upon approval, the Orchestrator runs:
+### Step 4: Phase 0 Setup & Contract-Bound True Subagent Delegation
+* Immediately upon approval, the Orchestrator runs:
   ```bash
   git branch --show-current
   git checkout -b feat/<task-slug>-$(date +%Y%m%d)
   ```
-- **Dispatch Subagents with Delegation Contracts (P0 Mandatory):**
-  Every implementation phase MUST dispatch a dedicated subagent (`invoke_subagent`) or swarm worker (`swarm add`). The coordinator is **strictly prohibited from directly writing application code**. Every subagent receives an explicit contract allocating exclusive, disjoint file boundaries (`Allowed File Paths`). Two concurrent subagents must never write to the same file.
+* **Enforce True Delegation & Phase Transparency (P0 Mandate):**
+  Every implementation phase assigned to a specialist must dispatch a dedicated subagent (`invoke_subagent`) or swarm worker (`swarm add`).
+* 🛑 **Direct Implementation Prohibition:** The coordinator is **strictly prohibited from directly writing application code** during implementation phases.
+* 🛑 **Anti-Pretense Mandate:** Merely printing specialist announcement banners in chat while running tools monolithically in the coordinator thread (*Pretense Violation*) is strictly forbidden.
+* Every subagent receives a formal **Delegation Contract** enforcing:
+  - Exclusive, disjoint file boundaries (`Allowed File Paths`).
+  - Prohibited shared paths and main branch protections.
+  - Required empirical verification commands.
+  - Zero overlapping file ownership across concurrent agents.
 
-### Step 5: Checkpoint Transparency & Anti-Silent Circuit Breaker
-- Announce public checkpoint banners accompanied by the actual dispatch tool call (`invoke_subagent` or `swarm add`).
-- Enforce the circuit breaker: Never exceed 4 tool calls consecutively without visible interim progress text to the user.
-- Enforce scratch file isolation: All temporary generator scripts, intermediate assets, and diagnostic fixtures must reside in `<Artifact Directory Path>/scratch/` or `/tmp/`, never in the repository root.
+### Step 5: Checkpoint Transparency, 4-Tool Circuit Breaker & Scratch Space Isolation
+* **Phase Checkpoint Announcements:** Every phase transition emits a public checkpoint banner accompanied in the same or next step by the actual subagent dispatch tool call.
+* **Anti-Silent Circuit Breaker (≤4 Tools):** An agent must **never execute more than 4 consecutive tool calls** without emitting visible interim progress text to the user.
+* **Scratch Space Hygiene & Isolation:** All temporary generator scripts, intermediate assets, and diagnostic fixtures must strictly reside in `<Artifact Directory Path>/scratch/` or `/tmp/`. Never generate scratch code or dump intermediate build artifacts in the repository root.
 
-### Step 6: Empirical Acceptance, Deliverable Verification & Automated CI Gate
-- Mandatory Pre-Delivery Verification: Validate all generated deliverables (`.docx`, `.xlsx`, `.pdf`, `.md`, `.txt`) with `./scripts/verify-deliverable.sh <path>` before presenting to users.
-- Run all regression test suites (`pytest`, `npm test`, `make verify`).
-- Review `git status -s` and `git diff --stat` to verify no scratch files leaked into the working tree.
-- Open a Pull Request to trigger the automated **2-Stage CI Gate** (linting, secret scan, build validation).
+### Step 6: Zero-Defect Delivery, Pre-Delivery Verification & Automated CI Gate
+* **Mandatory Pre-Delivery Deliverable Verification:** Every generated deliverable (`.docx`, `.xlsx`, `.pdf`, `.md`, `.txt`, `.json`) must pass:
+  ```bash
+  ./scripts/verify-deliverable.sh path/to/deliverable
+  ```
+  Verification must prove ZIP container integrity, XML schema validity (specifically preventing ECMA-376 OpenXML schema defects), and OS reader parseability (`textutil -info` on macOS) before final presentation.
+* Run all regression test suites (`make verify`, unit tests, linting).
+* Review `git status -s` and `git diff --stat` to ensure zero scratch files leaked into the git index.
+* Open a Pull Request to trigger the automated **2-Stage CI Gate** (linting, secret scan, build validation).
 
 ---
 
-## 📊 3. Empirical Comparative Analysis: 3 Real-World Projects
+## ⚙️ 3. The Native Subagent Tool Mapping Architecture (v2.1)
 
-| Dimension | ❌ Legacy Session (`249a2be1`) | ⚠️ Unhardened Run (`7ef1749f`) | ⚠️ Production App (`tinktinkai`) | 🏆 Enterprise SOP v2.0 |
+### The Mechanical Root Cause Discovered
+During forensic audits of failed and simulated sessions, an underlying mechanical breakdown was uncovered:
+* Legacy agent definitions declared Claude Code tool grants (`Read`, `Grep`, `Glob`, `Bash`, `Edit`, `Write`).
+* When Antigravity's runtime attempted to construct subagents using those definitions, it failed with:
+  ```text
+  failed to construct executor: failed to resolve components: unknown component: tool "Read" not found in registry
+  ```
+* Coordinators, anticipating or encountering this crash, retreated into **Simulated Execution (Pretense Violations)**—printing markdown headers while running monolithic single-threaded tools.
+
+### The Canonical Antigravity Tool Specification
+All 20 enterprise agents in [`agents/`](file:///Users/iminluv/Vscode/Agent-test/agents) have been remapped to the native Antigravity schema:
+
+```yaml
+---
+name: specialist-agent
+description: Comprehensive specialist role description
+tools:
+  - read_file      # Replaces Read, Glob, Grep
+  - edit_file      # Replaces Edit, MultiEdit
+  - write_file     # Replaces Write
+  - run_command    # Replaces Bash
+  - manage_task    # Background process management
+  - search_web     # Web research
+subagent: true     # Declares subagent capability
+mainAgent: false   # Specialist subagent flag
+model: inherit
+version: 2.1.0
+---
+```
+
+### Static vs. Dynamic Subagent Architecture
+* **Static Plugin Agents:** Stored in `~/.gemini/config/plugins/ag-kit/agents/` and ingested when an Antigravity IDE session or conversation initializes.
+* **Dynamic Subagents (`define_subagent`):** Created programmatically in-session for runtime-specific workflows. Grants `EnableWriteTools: true` and inherits native capabilities immediately without requiring an IDE restart.
+
+---
+
+## 📊 4. Empirical Comparative Analysis: Auditing Real-World Sessions
+
+The effectiveness of Enterprise SOP v2.1 is proven through forensic audits of real-world sessions conducted across different project domains:
+
+| Dimension | ❌ Session `9e05c5aa` (Lab 2 Embedded) | ❌ Session `d7684248` (Almadungduong 360°) | ⚠️ Session `8eb5832c` (Governance Hardening) | 🏆 Enterprise SOP v2.1 Benchmark |
 | :--- | :--- | :--- | :--- | :--- |
-| **Coordination Model** | Monolithic (single thread) | Multi-Agent (concurrent subagents) | Cross-Stack Monorepo | Multi-Agent with Delegation Contracts |
-| **Git Branch Safety** | ❌ Modified directly on `main` | ❌ Committed directly on `main` | ⚠️ Guidelines exist, but CI deploys `main` | ✅ **Mandatory checkout `feat/*` in Phase 0** |
-| **File Path Isolation** | No isolation | ❌ 3 subagents in shared `inherit` | ⚠️ Risk of schema divergence | ✅ **Disjoint File Sets via Contracts** |
-| **Secret Governance** | Unchecked | Unchecked | ❌ `.env` file committed to backend | ✅ **Zero-Secret Commit + TruffleHog CI Gate** |
-| **CI/CD Pipeline** | ❌ None | ❌ None | ⚠️ Deploy-only (no automated test gate) | ✅ **2-Stage: CI Test Gate + CD Rollback** |
-| **Full-Stack Sync** | Unchecked | Manual review | ✅ Documented Impact Analysis | ✅ **Enforced `impact-analysis.md` (P1)** |
+| **Task Scope** | STM32 Lab report in `.docx` | 360-degree audit across 8 domains | Rule hardening & Big-data review | Multi-domain feature / audit |
+| **Planning Gate** | 🔴 **Bypassed (0/10)**<br>Zero plan artifacts created | 🟢 **Compliant (10/10)**<br>Plan artifact + Proceed barrier | 🟢 **Compliant (10/10)**<br>Halted for user `"ok"` | ✅ **Plan Artifact + Proceed Gate Barrier** |
+| **Delegation Model** | Monolithic single thread | 🔴 **Pretense Violation (0/25)**<br>10 banners, 0 subagents | 🟢 **Authorized Scope**<br>Coordinator maintenance | ✅ **True Subagents via `invoke_subagent`** |
+| **Circuit Breaker** | 🔴 **15 & 19 silent calls** | 🔴 **53 consecutive silent calls** | 🔴 **30 silent calls** during audit | ✅ **Strict ≤4 Consecutive Tools Ceiling** |
+| **Deliverable QA** | 🔴 **Corrupted docx delivered**<br>Bare `<w:p><w:fldChar/></w:p>` | 🟢 Non-destructive read audit | 🟢 `make verify` passed (100%) | ✅ **Zero-Defect `./scripts/verify-deliverable.sh`** |
+| **Workspace Cleanliness**| 🔴 **Polluted root**<br>81 KB Python scripts in root | 🟢 Clean repository tree | 🟢 Clean branch `feat/*` | ✅ **Strict `<Artifact>/scratch/` Isolation** |
+| **Composite Score**| **51 / 100 (D+)** | **42 / 100 (D)** | **85.7 / 100 (B+)** | **100% Fully Compliant (A+)** |
 
 ---
 
-## 🛠️ 4. Quick Start & Tooling Reference
+## 🛠️ 5. Operational Tooling & Scripts Reference
 
-The `Agent-test` repository provides turnkey management tools:
+The `Agent-test` repository provides turnkey management and validation tooling:
 
 ```bash
 cd ~/Vscode/Agent-test
 
-# View available operational commands
+# 1. View operational commands
 make help
 
-# Bootstrap and synchronize v2.0 governance rules and agents (Symlink)
-make install
+# 2. Synchronize all 11 rules and 20 agents to Antigravity configuration
+make install            # Default symlink mode (real-time propagation)
+make install-copy       # Static copy mode
 
-# Verify 100% integrity across all rules and specialist agents
-make verify
+# 3. Comprehensive integrity verification & YAML frontmatter static analysis
+make verify             # Validates rules, agents, and native tool declarations
+./scripts/verify.sh --repo   # Verify repository files only
+./scripts/verify.sh --all    # Verify repository + installed configuration
 
-# Empirically verify any generated deliverable before user presentation
+# 4. Mandatory Pre-Delivery Deliverable Verification
 ./scripts/verify-deliverable.sh path/to/document.docx
+./scripts/verify-deliverable.sh path/to/spreadsheet.xlsx
+./scripts/verify-deliverable.sh path/to/report.pdf
+
+# 5. Bootstrap standardized .agents/ structure into a target project
+make scaffold-project TARGET=/path/to/target-project
 ```
+
+---
+
+## 📜 6. Governance Checklist (The Zero-Defect Standard)
+
+Before delivering any work, every agent must verify:
+- [ ] **Turn-1 Text Emitted:** Stated `@agent` and `@skills` before tool calls.
+- [ ] **Planning Gate Respected:** User approved plan artifact before source edits.
+- [ ] **Phase 0 Branch Active:** Never edit on `main` or `master`.
+- [ ] **True Subagents Dispatched:** Dispatched real subagents with exclusive contracts.
+- [ ] **Circuit Breaker Honored:** Never exceeded 4 silent tool calls without user updates.
+- [ ] **Workspace Unpolluted:** All generators and temporary fixtures placed in `scratch/`.
+- [ ] **Pre-Delivery Verification Passed:** `verify-deliverable.sh` reported 0 errors.
