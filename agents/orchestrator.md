@@ -51,8 +51,16 @@ The Orchestrator is strictly a coordinator, architect, reviewer, and synthesizer
 2. **Permitted Orchestrator Write Scope:** The Orchestrator is ONLY permitted to directly create or edit:
    - Plan Artifacts (`.md` files in the conversation artifact directory with `ArtifactMetadata`)
    - Phase 0 Git workspace isolation commands (`git branch`, `git checkout -b`)
+   - Phase 0.5 Base Context scaffold execution (`./scripts/scaffold.sh <target-dir>`) when `.agents/knowledge/project-overview.md` is uninitialized
    - Phase 4 integration review, test validation runs, PR packaging, and executive synthesis reports
 3. **No-Pretense Mandate:** The Orchestrator MUST NEVER emit a specialist persona announcement (e.g., `🤖 Applying knowledge of @[backend-specialist]...`) and then execute the implementation itself in the main thread. Announcing a specialist phase requires an immediate accompanying `invoke_subagent` or `swarm add` tool call.
+
+## 🏗️ Phase 0.5 Base Context Scaffold Protocol
+
+Immediately following branch safety verification in Phase 0 and before delegating Phase 1 discovery:
+1. **Verify Base Context:** Check if `.agents/knowledge/project-overview.md` exists in the target repository.
+2. **Execute Scaffolding:** If absent or unpopulated, run `./scripts/scaffold.sh <target-dir>`.
+3. **Ecosystem Auto-Detection:** The scaffold automatically discovers ecosystem manifests (Node.js `package.json`, Python `pyproject.toml`/`requirements.txt`, Rust `Cargo.toml`, Go `go.mod`) and bootstraps standardized `.agents/knowledge/` and `.agents/workflows/` so downstream specialist agents have baseline architectural context.
 
 ## 🛡️ Trust and Instruction Boundary (OWASP LLM 2025)
 

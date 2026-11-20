@@ -46,6 +46,7 @@ flowchart TD
     subgraph Tier2["🎯 Coordinator Tier (Orchestrator)"]
         Orch["Orchestrator Agent (Direct Implementation Prohibited)"]
         Phase0["Phase 0: Workspace & Git Setup Gate (feat/*)"]
+        Phase05["Phase 0.5: Base Context Scaffold & Auto-Detection"]
         Synthesizer["Integration, Verification Suite & Deliverables Synthesis"]
     end
 
@@ -93,7 +94,8 @@ flowchart TD
     R_Gate -->|Publish Plan Artifact| ProceedGate
     ProceedGate -->|Reject / Modify| Orch
     ProceedGate -->|Approve: Click Proceed| Phase0
-    Phase0 -->|Checkout feat/*| Orch
+    Phase0 -->|Checkout feat/*| Phase05
+    Phase05 -->|Auto-detect & scaffold .agents/| Orch
     Orch -->|invoke_subagent + Contract| Tier3
     Tier3 --> Synthesizer
     Synthesizer -->|./scripts/verify-deliverable.sh| PR
@@ -119,7 +121,7 @@ flowchart TD
 * ❌ **Strictly Forbidden:** Running autonomous tool loops silently and announcing active skills retroactively at the end of execution is a major protocol violation.
 
 ### Step 3: Delegation Matrix Formulation & Hard Stop Barrier
-* Formulate a structured phase breakdown starting with **Phase 0: Workspace & Git Safety Setup**.
+* Formulate a structured phase breakdown starting with **Phase 0: Workspace & Git Safety Setup** and **Phase 0.5: Base Context Scaffold & Auto-Detection**.
 * Publish the execution plan to a markdown artifact with metadata:
   ```json
   "ArtifactMetadata": {
@@ -130,12 +132,16 @@ flowchart TD
   ```
 * 🛑 **HARD STOP (Immediate Tool Termination):** The AI must immediately halt tool execution upon publishing the artifact and wait for the human user to click the **Proceed** button or confirm explicitly in chat.
 
-### Step 4: Phase 0 Setup & Contract-Bound True Subagent Delegation
+### Step 4: Phase 0 Setup, Phase 0.5 Base Context Auto-Scaffold & Subagent Delegation
 * Immediately upon approval, the Orchestrator runs:
   ```bash
   git branch --show-current
   git checkout -b feat/<task-slug>-$(date +%Y%m%d)
   ```
+* **Phase 0.5 Context Scaffold Execution (When Applicable):**
+  - Check if `.agents/knowledge/project-overview.md` exists in the target repository.
+  - If missing or uninitialized, execute `./scripts/scaffold.sh <target-dir>` (or `make scaffold-project TARGET=<target-dir>`).
+  - This automatically discovers ecosystem manifests (Node.js `package.json`, Python `pyproject.toml`/`requirements.txt`, Rust `Cargo.toml`, Go `go.mod`) and bootstraps standardized `.agents/knowledge/` and `.agents/workflows/` so downstream specialist agents have baseline architectural context before Phase 1 discovery begins.
 * **Enforce True Delegation & Phase Transparency (P0 Mandate):**
   Every implementation phase assigned to a specialist must dispatch a dedicated subagent (`invoke_subagent`) or swarm worker (`swarm add`).
 * 🛑 **Direct Implementation Prohibition:** The coordinator is **strictly prohibited from directly writing application code** during implementation phases.
@@ -253,6 +259,7 @@ Before delivering any work, every agent must verify:
 - [ ] **Turn-1 Text Emitted:** Stated `@agent` and `@skills` before tool calls.
 - [ ] **Planning Gate Respected:** User approved plan artifact before source edits.
 - [ ] **Phase 0 Branch Active:** Never edit on `main` or `master`.
+- [ ] **Phase 0.5 Context Verified:** Verified `.agents/knowledge/project-overview.md` and bootstrapped context via `scaffold.sh` if uninitialized.
 - [ ] **True Subagents Dispatched:** Dispatched real subagents with exclusive contracts.
 - [ ] **Circuit Breaker Honored:** Never exceeded 4 silent tool calls without user updates.
 - [ ] **Workspace Unpolluted:** All generators and temporary fixtures placed in `scratch/`.

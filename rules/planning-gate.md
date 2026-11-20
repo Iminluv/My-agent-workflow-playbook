@@ -1,9 +1,9 @@
 ---
 name: planning-gate
-version: 2.0.0
+version: 2.1.0
 priority: P0
 trigger: always_on
-description: Mandatory Human-in-the-Loop Planning Gate and Phase-to-Agent/Skill Delegation Matrix with Phase 0 Git Branch Setup, Disjoint Ownership, and Proceed Approval Barrier.
+description: Mandatory Human-in-the-Loop Planning Gate and Phase-to-Agent/Skill Delegation Matrix with Phase 0 Git Branch Setup, Phase 0.5 Base Context Scaffold Auto-Detection, Disjoint Ownership, and Proceed Approval Barrier.
 ---
 
 # Human-in-the-Loop Planning Gate & Delegation Matrix (P0 — Enterprise v2.0)
@@ -31,6 +31,7 @@ Before executing any heavy inspection tools, modifying code, or running test sui
 | Phase | Phase Name & Objective | Assigned Specialist Agent | Relevant Skills | Expected Deliverables |
 | :--- | :--- | :--- | :--- | :--- |
 | **Phase 0** | **Workspace & Git Safety Setup** | `devops-engineer` / `orchestrator` | `@bash-linux` | Isolated `feat/*` branch checked out safely |
+| **Phase 0.5** | **Base Context Scaffold & Auto-Detection** | `orchestrator` / `project-planner` / `devops-engineer` | `@bash-linux` | `.agents/` context structure bootstrapped with auto-detected tech stack & manifests |
 | **Phase 1** | Discovery & Lineage Audit | `code-archaeologist` | `@architecture` | Current state map & test baseline |
 | **Phase 2** | Specialized Audit & Patching | `security-auditor` / `backend-specialist` | `@vulnerability-scanner` | Source patches within disjoint file scopes |
 | **Phase 3** | Acceptance Testing & Zero Regression | `qa-automation-engineer` | `@testing-patterns` | 100% automated test suite pass matrix |
@@ -60,7 +61,10 @@ Before executing any heavy inspection tools, modifying code, or running test sui
 1. **Phase 0 is Mandatory:**
    - In Turn 1 following user approval, the Orchestrator runs: `git branch --show-current`.
    - If on `main` or `master`, create a new branch: `git checkout -b feat/<task-slug>-<date>`.
-2. **Phase Boundary Checkpoints & Mandatory Dispatch:**
+2. **Phase 0.5 Context Scaffold Execution (When Applicable):**
+   - Immediately following branch safety verification in Phase 0 and before Phase 1 discovery begins, verify if `.agents/knowledge/project-overview.md` exists in the target repository.
+   - If missing or uninitialized, execute `./scripts/scaffold.sh <target-dir>` (or `make scaffold-project TARGET=<target-dir>`) to automatically discover ecosystem manifests (Node.js `package.json`, Python `pyproject.toml`/`requirements.txt`, Rust `Cargo.toml`, Go `go.mod`) and populate standardized `.agents/` knowledge specs and workflow runbooks before Phase 1 discovery begins.
+3. **Phase Boundary Checkpoints & Mandatory Dispatch:**
    - Every time execution transitions to an implementation phase, announce publicly in chat:
    ```markdown
    ---
@@ -71,9 +75,9 @@ Before executing any heavy inspection tools, modifying code, or running test sui
    ```
    - 🛑 **MANDATORY DISPATCH (No-Pretense Gate):** The Phase checkpoint announcement MUST be accompanied in the same or immediately following step by the actual dispatch tool call (`invoke_subagent` or `swarm action: 'add'`) with the structured Delegation Contract.
    - **STRICTLY FORBIDDEN:** The Orchestrator MUST NEVER emit a specialist announcement and then execute the code implementation itself in the coordinator thread (*Pretense Violation*).
-3. **Anti-Silent Circuit Breaker:** Never execute more than 5 consecutive tool calls without interim progress updates to the user.
-4. **Contract-Based Delegation:** Every subagent must receive a contract enforcing `Allowed File Paths` per `rules/delegation-contract.md`.
-5. **Coordinator Synthesis Monopoly:** Specialist subagents write code within their isolated scopes; the Orchestrator remains the sole authority for final git validation, test suite execution, and deliverable reporting in Phase 4.
+4. **Anti-Silent Circuit Breaker:** Never execute more than 4 consecutive tool calls without interim progress updates to the user.
+5. **Contract-Based Delegation:** Every subagent must receive a contract enforcing `Allowed File Paths` per `rules/delegation-contract.md`.
+6. **Coordinator Synthesis Monopoly:** Specialist subagents write code within their isolated scopes; the Orchestrator remains the sole authority for final git validation, test suite execution, and deliverable reporting in Phase 4.
 
 
 ---

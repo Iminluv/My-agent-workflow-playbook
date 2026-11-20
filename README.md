@@ -10,13 +10,14 @@ This repository establishes the definitive engineering governance framework betw
 
 1. **Human-in-the-Loop Planning Gate:** Mandates that the AI formulate an explicit Delegation Matrix and halt execution at a "Proceed" barrier before modifying source code or running non-trivial operations.
 2. **Phase 0 Git Branch Safety (P0):** Strictly prohibits direct modifications on `main` or `master`. Enforces isolated feature branches (`feat/*`).
-3. **True Multi-Agent Subagent Architecture (Anti-Pretense):** Dispatches genuine, independent subagents (`invoke_subagent`) bound by structured Delegation Contracts with disjoint file scopes. Strictly prohibits monolithic coordinators from faking specialist phase banners.
-4. **Native Antigravity Tool Integration (v2.1):** Centralizes all **20 enterprise specialist agents** directly in version control. All agents declare canonical Antigravity native tools (`read_file`, `edit_file`, `write_file`, `run_command`, `manage_task`, `search_web`), completely eliminating legacy Claude Code tool runtime crashes (`tool "Read" not found in registry`).
-5. **Strict Anti-Silent Circuit Breaker (≤4 Tools):** Enforces immediate Turn-1 text-first announcements and hard yields: agents must never exceed 4 consecutive tool calls without visible interim progress text.
-6. **Mandatory Pre-Delivery Verification (`verify-deliverable.sh`):** Zero-defect delivery standard. Every generated `.docx`, `.xlsx`, `.pdf`, or formatted document must empirically pass structural, ZIP container, and XML schema checks (preventing ECMA-376 OpenXML corruption) before user delivery.
-7. **Scratch File Isolation:** Mandates that all temporary generator scripts, intermediate assets, and diagnostic fixtures reside strictly in `<Artifact Directory Path>/scratch/` or `/tmp/`, preserving clean workspace trees.
-8. **Decoupled CI/CD Architecture:** Reusable 2-stage GitHub Actions pipelines (CI Gate with TruffleHog secret scanning and automated testing; CD with health-check rollbacks).
-9. **Obsidian-Compliant SOP Playbook:** Complete documentation with native Mermaid diagrams, Obsidian callouts, and empirical real-world audit case studies.
+3. **Phase 0.5 Base Context Scaffold Auto-Detection:** Automatically inspects target repositories for `.agents/knowledge/project-overview.md` and runs `./scripts/scaffold.sh` to auto-detect tech stack manifests (Node.js, Python, Rust, Go) and bootstrap `.agents/` knowledge specs before specialist discovery begins.
+4. **True Multi-Agent Subagent Architecture (Anti-Pretense):** Dispatches genuine, independent subagents (`invoke_subagent`) bound by structured Delegation Contracts with disjoint file scopes. Strictly prohibits monolithic coordinators from faking specialist phase banners.
+5. **Native Antigravity Tool Integration (v2.1):** Centralizes all **20 enterprise specialist agents** directly in version control. All agents declare canonical Antigravity native tools (`read_file`, `edit_file`, `write_file`, `run_command`, `manage_task`, `search_web`), completely eliminating legacy Claude Code tool runtime crashes (`tool "Read" not found in registry`).
+6. **Strict Anti-Silent Circuit Breaker (≤4 Tools):** Enforces immediate Turn-1 text-first announcements and hard yields: agents must never exceed 4 consecutive tool calls without visible interim progress text.
+7. **Mandatory Pre-Delivery Verification (`verify-deliverable.sh`):** Zero-defect delivery standard. Every generated `.docx`, `.xlsx`, `.pdf`, or formatted document must empirically pass structural, ZIP container, and XML schema checks (preventing ECMA-376 OpenXML corruption) before user delivery.
+8. **Scratch File Isolation:** Mandates that all temporary generator scripts, intermediate assets, and diagnostic fixtures reside strictly in `<Artifact Directory Path>/scratch/` or `/tmp/`, preserving clean workspace trees.
+9. **Decoupled CI/CD Architecture:** Reusable 2-stage GitHub Actions pipelines (CI Gate with TruffleHog secret scanning and automated testing; CD with health-check rollbacks).
+10. **Obsidian-Compliant SOP Playbook:** Complete documentation with native Mermaid diagrams, Obsidian callouts, and empirical real-world audit case studies.
 
 ---
 
@@ -127,10 +128,13 @@ make verify
 ./scripts/verify-deliverable.sh path/to/document.docx
 ```
 
-### Step 4: Scaffold New Projects
+### Step 4: Scaffold New Projects & Auto-Detect Context
 ```bash
 # Bootstrap standardized .agents/ knowledge and workflow directory in a target repo
 make scaffold-project TARGET=/path/to/target-project
+
+# Or run the scaffold script directly
+./scripts/scaffold.sh /path/to/target-project
 ```
 
 ---
@@ -141,7 +145,8 @@ make scaffold-project TARGET=/path/to/target-project
 flowchart LR
     Step1["1. Turn-1 Text Announcement"] --> Step2["2. Plan Artifact + Proceed Gate"]
     Step2 --> Step3["3. Phase 0: feat/* Branch Checkout"]
-    Step3 --> Step4["4. Dispatch Subagents with Contracts"]
+    Step3 --> Step35["3.5. Phase 0.5: Context Auto-Scaffold"]
+    Step35 --> Step4["4. Dispatch Subagents with Contracts"]
     Step4 --> Step5["5. <= 4 Tools Circuit Breaker & Scratch Space"]
     Step5 --> Step6["6. verify-deliverable.sh Pre-Delivery Gate"]
 ```
