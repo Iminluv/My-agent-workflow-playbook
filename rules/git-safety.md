@@ -76,3 +76,39 @@ Upon completing implementation:
    📊 Test Results: [X passing tests]
    👉 Review diff before merge via: `git diff main..feat/<task-slug>`
    ```
+
+---
+
+### 4.1 The Merge When Ordered Protocol (Post-Merge Commit Prohibition)
+
+When the user explicitly orders a merge (e.g., `merge`, `merge all`):
+
+1. **Pre-Merge Feature Branch Finalization:**
+   - All documentation, summaries, dashboards, and manifests **MUST** be committed to the feature branch **BEFORE** switching to `main`.
+   - Ensure the working tree is clean:
+     ```bash
+     git status --porcelain  # Must be clean before switching branches
+     ```
+
+2. **Clean Fast-Forward Merge Execution:**
+   - Switch to `main` and execute the merge cleanly:
+     ```bash
+     git checkout main && git merge <feature-branch> --ff-only
+     ```
+
+3. **STRICT POST-MERGE COMMIT PROHIBITION:**
+   - **Once on `main`, the agent is strictly forbidden from creating, editing, or committing any new files.**
+   - If any new file, document, or log must be created post-merge, the agent **MUST** immediately checkout a new feature branch:
+     ```bash
+     git checkout -b feat/docs-<task-slug>
+     ```
+
+4. **Branch Retention & Push Notification:**
+   - **Do NOT delete feature branches** with `git branch -d` or `git branch -D` until verified pushed to `origin`.
+   - **Warn the User:** Local `main` is ahead of `origin/main` and needs push:
+     ```markdown
+     ⚠️ **Merge Complete (Local Only):**
+     - Branch `feat/<task-slug>` merged into `main` via `--ff-only`.
+     - Local `main` is ahead of `origin/main`. Run `git push origin main` to synchronize upstream.
+     - Feature branch retained locally until remote push is confirmed.
+     ```

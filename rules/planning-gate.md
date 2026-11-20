@@ -74,3 +74,25 @@ Before executing any heavy inspection tools, modifying code, or running test sui
 3. **Anti-Silent Circuit Breaker:** Never execute more than 5 consecutive tool calls without interim progress updates to the user.
 4. **Contract-Based Delegation:** Every subagent must receive a contract enforcing `Allowed File Paths` per `rules/delegation-contract.md`.
 5. **Coordinator Synthesis Monopoly:** Specialist subagents write code within their isolated scopes; the Orchestrator remains the sole authority for final git validation, test suite execution, and deliverable reporting in Phase 4.
+
+
+---
+
+---
+
+## 🛑 5. Phase 4 Completion & The Human Merge Barrier
+
+1. **Phase 4 Verification & Deliverables:**
+   - Phase 4 (Consolidation, Release & PR Ready) must conclude on the feature branch with:
+     - 100% automated test suite passing on the feature branch.
+     - Verified deliverable presentation and comprehensive diff summary.
+     - All documentation, summaries, dashboards, and manifests committed to the feature branch.
+
+2. **HARD STOP ON FEATURE BRANCH (The Human Merge Barrier):**
+   - The coordinator is **STRICTLY PROHIBITED** from autonomously executing `git checkout main && git merge`.
+   - The coordinator must remain on the feature branch and explicitly prompt the user:
+     > "All Phase 4 verification tests have passed on `feat/<task-slug>`. Would you like me to merge this branch into `main`, or keep it on the feature branch / create a PR?"
+
+3. **Explicit User Merge Order Required:**
+   - Merging into `main` is permitted **ONLY** after the user explicitly responds with a merge order (e.g., `merge`, `merge all`).
+   - Autonomous merging without explicit user confirmation is strictly forbidden.
