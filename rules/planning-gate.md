@@ -78,6 +78,9 @@ Before executing any heavy inspection tools, modifying code, or running test sui
 4. **Anti-Silent Circuit Breaker:** Never execute more than 4 consecutive tool calls without interim progress updates to the user.
 5. **Contract-Based Delegation:** Every subagent must receive a contract enforcing `Allowed File Paths` per `rules/delegation-contract.md`.
 6. **Coordinator Synthesis Monopoly:** Specialist subagents write code within their isolated scopes; the Orchestrator remains the sole authority for final git validation, test suite execution, and deliverable reporting in Phase 4.
+7. **Subagent Model Tiering & `schedule` Watchdogs:** Coordinators calling `invoke_subagent` MUST default to `Model: "flash"` for discovery (`explorer-agent`), routine implementation, and QA/test scripting (reserving `inherit` / `pro` for deep architecture, complex debugging, or multi-domain synthesis) and attach a `schedule` one-shot watchdog (`DurationSeconds: 600`, `TimerCondition: "<subagentId>"` or `"any"`) for long-running subagents.
+8. **Background Task Communication & Clean Wakeups:** Subagents launching a background `run_command` MUST send an interim `send_message` update to the parent BEFORE ending their turn to wait (monitoring with `NotificationTimeoutSeconds` / `schedule`), since canceled tasks emit `MESSAGE_PRIORITY_LOW` and will NOT wake an idle subagent. Coordinators waking on watchdog timeout or user `"Continue"` MUST communicate via `send_message` / `manage_subagents`, never peeking raw `transcript.jsonl` via shell.
+9. **Bounded Execution (`120s` Timeout & `MAX_RETRIES=3`):** Verification and test commands MUST enforce a `120s` portable hard timeout (never relying on `WaitMsBeforeAsync` or `NotificationTimeoutSeconds` to terminate processes) and `MAX_RETRIES=3` retry cap before escalating.
 
 
 ---
@@ -91,6 +94,7 @@ Before executing any heavy inspection tools, modifying code, or running test sui
      - 100% automated test suite passing on the feature branch.
      - Verified deliverable presentation and comprehensive diff summary.
      - All documentation, summaries, dashboards, and manifests committed to the feature branch.
+     - An **Execution & Resilience Metrics** table covering: `Agent / Subagent (ID)`, `Model Tier`, `Wall Time`, `Timeouts Configured / Triggered`, `Retry Attempts (used/max)`, `Circuit-Breaker Denials`, and `Completion Signal` (`send_message` vs watchdog/manual resume).
 
 2. **HARD STOP ON FEATURE BRANCH (The Human Merge Barrier):**
    - The coordinator is **STRICTLY PROHIBITED** from autonomously executing `git checkout main && git merge`.

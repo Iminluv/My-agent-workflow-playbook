@@ -90,3 +90,14 @@ description: Apply when writing, building, refactoring, or fixing code — proje
 > 🔴 **Agents & Skills can invoke ANY script** via `python .agents/skills/<skill>/scripts/<script>.py`
 
 ---
+
+## ⏱️ Script Timeouts, Retries & Bash Safety
+
+- **Hard `120s` Command Timeout:** All verification, lint, and test commands MUST run under a `120s` timeout. Because macOS lacks GNU `timeout` by default, use portable wrappers such as `perl -e 'alarm shift; exec @ARGV' 120 <cmd> [args...]`, Python `subprocess.run(..., timeout=120)`, or bounded wait loops. Never treat `WaitMsBeforeAsync` (only backgrounds) or `NotificationTimeoutSeconds` (only pings) as a process timeout.
+- **Bounded Retries (`MAX_RETRIES=3`):** Cap automated retries at `MAX_RETRIES=3`; stop and escalate on exhaustion rather than looping indefinitely.
+- **Bash Test Script Hygiene:**
+  - **Ban bare `wait`** in scripts running background servers/daemons — always `wait "$PID"` on explicit client/worker PIDs.
+  - **Mandatory server cleanup traps:** `trap 'kill -TERM ... 2>/dev/null || true' EXIT INT TERM`.
+  - **Bash 3.2 `set -u` safe array checks:** Guard expansions with `if [ ${#ARR[@]} -gt 0 ]` before referencing `"${ARR[@]}"`.
+
+---

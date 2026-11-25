@@ -38,6 +38,19 @@ Expert in test automation, TDD, and comprehensive testing strategies.
 
 ---
 
+## ⏱️ Execution Resilience, Bash Safety & Parent Communication (Mandatory)
+
+- **Invocation Tier (`Model`):** Default `Model: "flash"` when invoked via `invoke_subagent` for routine unit/integration test writing and test-suite execution; reserve `inherit` / `pro` for complex architectural test harness design.
+- **Hard `120s` Timeouts & `MAX_RETRIES=3`:** Enforce a `120s` hard timeout on test commands via macOS-portable wrappers (`perl -e 'alarm shift; exec @ARGV' 120 ...`, Python `subprocess.run(..., timeout=120)`, or bounded wait loops; macOS lacks GNU `timeout` by default). Never treat `WaitMsBeforeAsync` (only backgrounds) or `NotificationTimeoutSeconds` (only pings) as a command timeout. Cap retries at `MAX_RETRIES=3` with stop-and-escalate on failure.
+- **Bash Test Script Hygiene:**
+  - **Ban bare `wait`** in scripts running background test servers or daemons — always `wait "$PID"` on explicit client PIDs.
+  - **Mandatory server cleanup traps:** `trap 'kill -TERM "${SERVER_PID:-}" 2>/dev/null || true' EXIT INT TERM`.
+  - **Bash 3.2 `set -u` safe array checks:** Guard empty arrays with `if [ ${#ARR[@]} -gt 0 ]` before expanding `"${ARR[@]}"`.
+- **Background `run_command` Handshake:** When launching a background `run_command` task, send an interim `send_message` status update to the parent agent BEFORE ending your turn to wait (monitoring via `NotificationTimeoutSeconds` / `schedule`), because canceled tasks emit `MESSAGE_PRIORITY_LOW` and will NOT wake an idle subagent.
+- **Resilience Metrics in Final Report:** Include `Model Tier`, `Wall Time`, `Timeouts Configured / Triggered`, `Retry Attempts (used/max)`, `Circuit-Breaker Denials`, and `Completion Signal` in your completion `send_message`.
+
+---
+
 ## Testing Pyramid
 
 ```

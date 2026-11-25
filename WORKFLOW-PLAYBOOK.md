@@ -12,7 +12,7 @@ tags:
   - "ci-cd"
   - "governance"
 created: 2026-11-12
-updated: 2026-11-15
+updated: 2026-11-25
 type: "playbook"
 ---
 
@@ -149,21 +149,27 @@ flowchart TD
 * Every subagent receives a formal **Delegation Contract** enforcing:
   - Exclusive, disjoint file boundaries (`Allowed File Paths`).
   - Prohibited shared paths and main branch protections.
-  - Required empirical verification commands.
+  - `Model` tier selection (`Model: "flash"` default for discovery/routine/QA; `inherit` / `pro` for deep architecture, complex debugging, and synthesis).
+  - Coordinator `schedule` one-shot watchdog (`DurationSeconds: 600`, `TimerCondition: "<subagentId>"` or `"any"`).
+  - Required empirical verification commands (`120s` portable hard timeout, `MAX_RETRIES=3`).
   - Zero overlapping file ownership across concurrent agents.
 
-### Step 5: Checkpoint Transparency, 4-Tool Circuit Breaker & Scratch Space Isolation
+### Step 5: Checkpoint Transparency, 4-Tool Circuit Breaker, Watchdogs & Scratch Space Isolation
 * **Phase Checkpoint Announcements:** Every phase transition emits a public checkpoint banner accompanied in the same or next step by the actual subagent dispatch tool call.
-* **Anti-Silent Circuit Breaker (≤4 Tools):** An agent must **never execute more than 4 consecutive tool calls** without emitting visible interim progress text to the user.
+* **Anti-Silent Circuit Breaker (≤4 Tools):** An agent must **never execute more than 4 consecutive tool calls** without emitting visible interim progress text to the user (mechanically enforced by `hooks/circuit-breaker.mjs`).
+* **Background Task Communication:** Subagents launching a background `run_command` MUST emit an interim `send_message` update to the parent BEFORE ending their turn to wait (monitoring via `NotificationTimeoutSeconds` / `schedule`), because canceled tasks emit `MESSAGE_PRIORITY_LOW` and will not wake an idle subagent.
+* **Clean Wakeups:** On watchdog timeout or user `"Continue"`, coordinators communicate via `send_message` / `manage_subagents` rather than inspecting raw subagent `transcript.jsonl` via shell.
 * **Scratch Space Hygiene & Isolation:** All temporary generator scripts, intermediate assets, and diagnostic fixtures must strictly reside in `<Artifact Directory Path>/scratch/` or `/tmp/`. Never generate scratch code or dump intermediate build artifacts in the repository root.
 
 ### Step 6: Zero-Defect Delivery, Pre-Delivery Verification & Automated CI Gate
 * **Mandatory Pre-Delivery Deliverable Verification:** Every generated deliverable (`.docx`, `.xlsx`, `.pdf`, `.md`, `.txt`, `.json`) must pass:
   ```bash
-  ./scripts/verify-deliverable.sh path/to/deliverable
+  ./scripts/verify-deliverable.sh path/to/deliverable \
+    || ~/.gemini/config/plugins/ag-kit/scripts/verify-deliverable.sh path/to/deliverable
   ```
   Verification must prove ZIP container integrity, XML schema validity (specifically preventing ECMA-376 OpenXML schema defects), and OS reader parseability (`textutil -info` on macOS) before final presentation.
-* Run all regression test suites (`make verify`, unit tests, linting).
+* **Execution & Resilience Metrics Report:** Every Phase 4 completion summary and session audit report must include the **Execution & Resilience Metrics** table (covering `Agent / Subagent (ID)`, `Model Tier`, `Wall Time`, `Timeouts Configured / Triggered`, `Retry Attempts (used/max)`, `Circuit-Breaker Denials`, and `Completion Signal`).
+* Run all regression test suites (`make verify`, unit tests, linting) under `120s` timeouts and `MAX_RETRIES=3`.
 * Review `git status -s` and `git diff --stat` to ensure zero scratch files leaked into the git index.
 * Open a Pull Request to trigger the automated **2-Stage CI Gate** (linting, secret scan, build validation).
 
@@ -207,7 +213,41 @@ version: 2.1.0
 
 ---
 
-## 📊 4. Empirical Comparative Analysis: Auditing Real-World Sessions
+## 🪝 4. Runtime Hooks, Execution Resilience & Model Tiering
+
+### 4.1 `PreToolUse` Hooks (`hooks.json` & `hooks/`)
+The repository defines two mechanical `PreToolUse` enforcement hooks in [`hooks.json`](file:///Users/iminluv/Vscode/Agent-test/hooks.json):
+
+| Hook Name | Matcher | Script | Timeout | Responsibility |
+| :--- | :--- | :--- | :--- | :--- |
+| **`ag-kit-safety-gate`** | `run_command` | `node ./hooks/validate-tool-call.mjs` | `10s` | Blocks catastrophic root deletion (`rm -rf /`), filesystem formatting (`mkfs`, `format`), and raw disk overwrites (`dd ... of=/dev/*`); fails open on malformed stdin. |
+| **`ag-kit-circuit-breaker`** | `*` | `node ./hooks/circuit-breaker.mjs` | `5s` | Tails the active transcript and blocks the 5th consecutive silent tool call when no user-facing model progress text has been emitted (strict ceiling: `4`). |
+
+### 4.2 Timeouts (`120s`), Bounded Retries (`MAX_RETRIES=3`) & Bash 3.2 Safety
+> [!IMPORTANT] COMMAND TIMEOUTS ON MACOS & TOOL PARAMETERS
+> macOS does not ship GNU `timeout` by default. Wrap test/verification commands with `perl -e 'alarm shift; exec @ARGV' 120 <cmd>`, Python `subprocess.run(..., timeout=120)`, or bounded wait loops. **Never rely on `WaitMsBeforeAsync` as a timeout** (it only backgrounds an uncompleted command) or **`NotificationTimeoutSeconds`** (it only triggers a reminder ping) — neither terminates a hung process.
+
+* **Retry Ceiling (`MAX_RETRIES=3`):** Automated retries are capped at 3 attempts with explicit stop-and-escalate on exhaustion; infinite/silent retry loops are forbidden.
+* **Bash Test Script Hygiene:**
+  1. **Ban bare `wait`:** When a script starts background servers or daemons, always `wait "$CLIENT_PID"` on explicit client/worker PIDs.
+  2. **Mandatory cleanup traps:** Register `trap 'kill -TERM "${SERVER_PID:-}" 2>/dev/null || true' EXIT INT TERM` on background server/daemon harnesses.
+  3. **Bash 3.2 `set -u` array safety:** Guard empty arrays with `if [ ${#ARR[@]} -gt 0 ]` before expanding `"${ARR[@]}"`.
+
+### 4.3 Subagent Watchdogs, Parent Communication & `Model` Tiering
+* **Subagent `Model` Tiering:** Default to `Model: "flash"` on `invoke_subagent` for discovery (`explorer-agent`), routine implementation, and QA/test scripting; reserve `inherit` / `pro` for deep architecture, complex debugging, or multi-domain synthesis.
+* **Coordinator `schedule` Watchdog:** Every long-running `invoke_subagent` call MUST attach a `schedule` one-shot watchdog (`DurationSeconds: 600`, `TimerCondition: "<subagentId>"` or `"any"`).
+* **Interim `send_message` Before Background Wait:** Any subagent launching a background `run_command` MUST send an interim `send_message` status update to the parent agent BEFORE ending its turn to wait (monitoring via `NotificationTimeoutSeconds` / `schedule`), because canceled background tasks emit `MESSAGE_PRIORITY_LOW` and will NOT wake an idle subagent.
+* **Clean Wakeups:** When waking on watchdog timeout or user `"Continue"`, coordinators MUST communicate via `send_message` / `manage_subagents` rather than inspecting raw subagent `transcript.jsonl` via shell.
+
+### 4.4 Execution & Resilience Metrics Table (Mandatory in Phase 4 & Audit Reports)
+
+| Agent / Subagent (ID) | Model Tier | Wall Time | Timeouts Configured / Triggered | Retry Attempts (used/max) | Circuit-Breaker Denials | Completion Signal |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `<agent> (<id>)` | `flash` / `inherit` / `pro` | `<Ns>` | `120s cmd, 600s watchdog / 0` | `0/3` | `0` | `send_message` / `watchdog` / `manual resume` |
+
+---
+
+## 📊 5. Empirical Comparative Analysis: Auditing Real-World Sessions
 
 The effectiveness of Enterprise SOP v2.1 is proven through forensic audits of real-world sessions conducted across different project domains:
 
@@ -223,7 +263,7 @@ The effectiveness of Enterprise SOP v2.1 is proven through forensic audits of re
 
 ---
 
-## 🛠️ 5. Operational Tooling & Scripts Reference
+## 🛠️ 6. Operational Tooling & Scripts Reference
 
 The `Agent-test` repository provides turnkey management and validation tooling:
 
@@ -242,9 +282,9 @@ make verify             # Validates rules, agents, and native tool declarations
 ./scripts/verify.sh --repo   # Verify repository files only
 ./scripts/verify.sh --all    # Verify repository + installed configuration
 
-# 4. Mandatory Pre-Delivery Deliverable Verification
+# 4. Mandatory Pre-Delivery Deliverable Verification (local or global fallback)
 ./scripts/verify-deliverable.sh path/to/document.docx
-./scripts/verify-deliverable.sh path/to/spreadsheet.xlsx
+~/.gemini/config/plugins/ag-kit/scripts/verify-deliverable.sh path/to/spreadsheet.xlsx
 ./scripts/verify-deliverable.sh path/to/report.pdf
 
 # 5. Bootstrap standardized .agents/ structure into a target project
@@ -253,14 +293,15 @@ make scaffold-project TARGET=/path/to/target-project
 
 ---
 
-## 📜 6. Governance Checklist (The Zero-Defect Standard)
+## 📜 7. Governance Checklist (The Zero-Defect Standard)
 
 Before delivering any work, every agent must verify:
 - [ ] **Turn-1 Text Emitted:** Stated `@agent` and `@skills` before tool calls.
 - [ ] **Planning Gate Respected:** User approved plan artifact before source edits.
 - [ ] **Phase 0 Branch Active:** Never edit on `main` or `master`.
 - [ ] **Phase 0.5 Context Verified:** Verified `.agents/knowledge/project-overview.md` and bootstrapped context via `scaffold.sh` if uninitialized.
-- [ ] **True Subagents Dispatched:** Dispatched real subagents with exclusive contracts.
-- [ ] **Circuit Breaker Honored:** Never exceeded 4 silent tool calls without user updates.
+- [ ] **True Subagents & Model Tiering:** Dispatched real subagents with exclusive contracts, `Model` tiering (`flash` default for discovery/routine/QA), and `schedule` watchdogs (`DurationSeconds: 600`).
+- [ ] **Circuit Breaker & Messaging Honored:** Never exceeded 4 silent tool calls without user updates; sent interim `send_message` before background waits.
+- [ ] **Timeouts, Retries & Bash 3.2 Hygiene:** Enforced `120s` portable timeouts, `MAX_RETRIES=3`, cleanup `trap`, explicit `wait "$PID"`, and `if [ ${#ARR[@]} -gt 0 ]`.
 - [ ] **Workspace Unpolluted:** All generators and temporary fixtures placed in `scratch/`.
-- [ ] **Pre-Delivery Verification Passed:** `verify-deliverable.sh` reported 0 errors.
+- [ ] **Pre-Delivery Verification & Metrics:** `verify-deliverable.sh` reported 0 errors and the **Execution & Resilience Metrics** table is included.

@@ -33,6 +33,19 @@ skills:
 
 ---
 
+## ⏱️ Execution Resilience, Bash Safety & Parent Communication (Mandatory)
+
+- **Invocation Tier (`Model`):** Reserve `Model: "inherit"` or `"pro"` on `invoke_subagent` for complex root-cause debugging, race conditions, and multi-component crash analysis (routine log/syntax triage may use `Model: "flash"`).
+- **Hard `120s` Timeouts & `MAX_RETRIES=3`:** Run reproduction and diagnostic commands with a `120s` portable hard timeout (`perl -e 'alarm shift; exec @ARGV' 120 ...`, Python `subprocess.run(..., timeout=120)`, or bounded wait loops — macOS lacks GNU `timeout` by default). Never rely on `WaitMsBeforeAsync` (only backgrounds) or `NotificationTimeoutSeconds` (only pings) to abort hung processes. Cap reproduction/retry loops at `MAX_RETRIES=3` and stop-and-escalate with collected evidence on failure.
+- **Bash Reproduction Script Hygiene:**
+  - **Ban bare `wait`** in scripts launching background target processes/servers — always `wait "$PID"` on explicit client/repro PIDs.
+  - **Mandatory cleanup traps:** `trap 'kill -TERM "${TARGET_PID:-}" 2>/dev/null || true' EXIT INT TERM`.
+  - **Bash 3.2 `set -u` safe array checks:** Guard empty arrays with `if [ ${#ARR[@]} -gt 0 ]` before expanding `"${ARR[@]}"`.
+- **Background `run_command` Handshake:** If waiting on a background `run_command` capture/repro task, ALWAYS send an interim `send_message` status update to the parent agent BEFORE ending your turn (monitoring via `NotificationTimeoutSeconds` / `schedule`), because canceled tasks emit `MESSAGE_PRIORITY_LOW` and will NOT wake an idle subagent.
+- **Resilience Metrics in Final Report:** Include `Model Tier`, `Wall Time`, `Timeouts Configured / Triggered`, `Retry Attempts (used/max)`, `Circuit-Breaker Denials`, and `Completion Signal` in your final `send_message`.
+
+---
+
 ## 4-Phase Debugging Process
 
 ```

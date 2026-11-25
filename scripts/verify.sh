@@ -16,10 +16,17 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TARGET_PLUGIN_DIR="${TARGET_PLUGIN_DIR:-${HOME}/.gemini/config/plugins/ag-kit}"
 REPO_RULES_DIR="${REPO_RULES_DIR:-${ROOT_DIR}/rules}"
 REPO_AGENTS_DIR="${REPO_AGENTS_DIR:-${ROOT_DIR}/agents}"
-TARGET_RULES_DIR="${TARGET_RULES_DIR:-${HOME}/.gemini/config/plugins/ag-kit/rules}"
-TARGET_AGENTS_DIR="${TARGET_AGENTS_DIR:-${HOME}/.gemini/config/plugins/ag-kit/agents}"
+REPO_HOOKS_DIR="${REPO_HOOKS_DIR:-${ROOT_DIR}/hooks}"
+REPO_HOOKS_CONFIG="${REPO_HOOKS_CONFIG:-${ROOT_DIR}/hooks.json}"
+REPO_SCRIPTS_DIR="${REPO_SCRIPTS_DIR:-${ROOT_DIR}/scripts}"
+TARGET_RULES_DIR="${TARGET_RULES_DIR:-${TARGET_PLUGIN_DIR}/rules}"
+TARGET_AGENTS_DIR="${TARGET_AGENTS_DIR:-${TARGET_PLUGIN_DIR}/agents}"
+TARGET_HOOKS_DIR="${TARGET_HOOKS_DIR:-${TARGET_PLUGIN_DIR}/hooks}"
+TARGET_HOOKS_CONFIG="${TARGET_HOOKS_CONFIG:-${TARGET_PLUGIN_DIR}/hooks.json}"
+TARGET_SCRIPTS_DIR="${TARGET_SCRIPTS_DIR:-${TARGET_PLUGIN_DIR}/scripts}"
 
 CHECK_MODE="all" # Options: all, repo, target
 
@@ -27,17 +34,21 @@ show_help() {
     cat << EOF
 Usage: $(basename "$0") [OPTIONS]
 
-Validates the integrity, frontmatter, and tool declarations of Antigravity rules and agents.
+Validates the integrity, frontmatter, hooks, scripts, and tool declarations of Antigravity rules and agents.
 
 Options:
   -a, --all        Verify both repository source files and installed plugins (default).
-  -r, --repo       Verify only repository source files (rules/*.md, agents/*.md).
+  -r, --repo       Verify only repository source files (rules/*.md, agents/*.md, hooks/*, hooks.json, scripts/*).
   -t, --target     Verify only installed plugin configuration files.
   -h, --help       Show this help message and exit.
 
 Environment Variables:
-  TARGET_RULES_DIR   Target rules directory (default: ~/.gemini/config/plugins/ag-kit/rules)
-  TARGET_AGENTS_DIR  Target agents directory (default: ~/.gemini/config/plugins/ag-kit/agents)
+  TARGET_PLUGIN_DIR    Base installed plugin directory (default: ~/.gemini/config/plugins/ag-kit)
+  TARGET_RULES_DIR     Target rules directory (default: \$TARGET_PLUGIN_DIR/rules)
+  TARGET_AGENTS_DIR    Target agents directory (default: \$TARGET_PLUGIN_DIR/agents)
+  TARGET_HOOKS_DIR     Target hooks directory (default: \$TARGET_PLUGIN_DIR/hooks)
+  TARGET_HOOKS_CONFIG  Target hooks.json file (default: \$TARGET_PLUGIN_DIR/hooks.json)
+  TARGET_SCRIPTS_DIR   Target scripts directory (default: \$TARGET_PLUGIN_DIR/scripts)
 
 EOF
 }
@@ -121,6 +132,15 @@ REQUIRED_NATIVE_TOOLS=(
     "search_web"
 )
 
+REQUIRED_HOOKS=(
+    "circuit-breaker.mjs"
+    "validate-tool-call.mjs"
+)
+
+REQUIRED_SCRIPTS=(
+    "verify-deliverable.sh"
+)
+
 ERRORS=0
 
 # ==============================================================================
@@ -144,7 +164,12 @@ verify_list() {
 
     for item in "${items[@]}"; do
         local target_file="${target_dir}/${item}"
-        if [[ ! -e "${target_file}" && ! -L "${target_file}" ]]; then
+        if [[ -L "${target_file}" && ! -e "${target_file}" ]]; then
+            printf "%-26s | %-10s | %-10s | ${RED}BROKEN SYMLINK${NC}\n" "${item}" "Symlink" "---"
+            ERRORS=$((ERRORS + 1))
+            continue
+        fi
+        if [[ ! -e "${target_file}" ]]; then
             printf "%-26s | %-10s | %-10s | ${RED}MISSING${NC}\n" "${item}" "---" "---"
             ERRORS=$((ERRORS + 1))
             continue
@@ -160,6 +185,172 @@ verify_list() {
             ERRORS=$((ERRORS + 1))
         else
             printf "%-26s | %-10s | %-10s | ${GREEN}VALID (OK)${NC}\n" "${item}" "${type}" "${size}B"
+        fi
+    done
+}
+
+# ==============================================================================
+# Helper: Verify Hooks Syntax & Executable Permissions
+# ==============================================================================
+verify_hooks_runtime() {
+    local hooks_dir="$1"
+    local label="$2"
+    shift 2
+    local items=("$@")
+
+    echo -e "\n🪝 Validating Hooks Syntax & Permissions: ${YELLOW}${label}${NC}"
+    printf "%-26s | %-10s | %-12s | %s\n" "Hook File" "Exec Bit" "Node Check" "Status"
+    echo "--------------------------------------------------------------------------------"
+
+    if [[ ! -d "${hooks_dir}" ]]; then
+        echo -e "${RED}❌ Directory not found: ${hooks_dir}${NC}"
+        ERRORS=$((ERRORS + ${#items[@]}))
+        return 1
+    fi
+
+    for item in "${items[@]}"; do
+        local hook_file="${hooks_dir}/${item}"
+        if [[ ! -f "${hook_file}" ]]; then
+            printf "%-26s | %-10s | %-12s | ${RED}MISSING${NC}\n" "${item}" "---" "---"
+            ERRORS=$((ERRORS + 1))
+            continue
+        fi
+
+        local exec_status="${GREEN}OK${NC}"
+        local syntax_status="${GREEN}OK${NC}"
+        local has_err=false
+
+        if [[ ! -x "${hook_file}" ]]; then
+            exec_status="${RED}NOT +x${NC}"
+            has_err=true
+        fi
+
+        if command -v node >/dev/null 2>&1; then
+            if ! node --check "${hook_file}" >/dev/null 2>&1; then
+                syntax_status="${RED}SYNTAX ERR${NC}"
+                has_err=true
+            fi
+        else
+            syntax_status="${YELLOW}SKIPPED${NC}"
+        fi
+
+        if [[ "${has_err}" == "true" ]]; then
+            printf "%-26s | %-10b | %-12b | ${RED}INVALID${NC}\n" "${item}" "${exec_status}" "${syntax_status}"
+            ERRORS=$((ERRORS + 1))
+        else
+            printf "%-26s | %-10b | %-12b | ${GREEN}VALID (OK)${NC}\n" "${item}" "${exec_status}" "${syntax_status}"
+        fi
+    done
+}
+
+# ==============================================================================
+# Helper: Verify hooks.json Structure & Valid JSON
+# ==============================================================================
+verify_hooks_config() {
+    local config_path="$1"
+    local label="$2"
+
+    echo -e "\n⚙️  Validating Hooks Configuration: ${YELLOW}${label}${NC} (${config_path})"
+    echo "--------------------------------------------------------------------------------"
+
+    if [[ -L "${config_path}" && ! -e "${config_path}" ]]; then
+        echo -e "  ${RED}❌ BROKEN SYMLINK: ${config_path}${NC}"
+        ERRORS=$((ERRORS + 1))
+        return 1
+    fi
+    if [[ ! -f "${config_path}" ]]; then
+        echo -e "  ${RED}❌ MISSING: ${config_path}${NC}"
+        ERRORS=$((ERRORS + 1))
+        return 1
+    fi
+
+    local size
+    size="$(wc -c < "${config_path}" | tr -d ' ')"
+    if [[ ${size} -lt 20 ]]; then
+        echo -e "  ${RED}❌ EMPTY/TOO SHORT (${size}B): ${config_path}${NC}"
+        ERRORS=$((ERRORS + 1))
+        return 1
+    fi
+
+    if command -v node >/dev/null 2>&1; then
+        if node --input-type=module -e '
+            import fs from "node:fs";
+            const data = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+            if (!data || typeof data !== "object" || Array.isArray(data)) {
+                throw new Error("hooks.json root must be an object");
+            }
+            const serialized = JSON.stringify(data);
+            if (!serialized.includes("./hooks/validate-tool-call.mjs") || !serialized.includes("./hooks/circuit-breaker.mjs")) {
+                throw new Error("hooks.json missing expected hook commands");
+            }
+        ' "${config_path}" >/dev/null 2>&1; then
+            echo -e "  ${GREEN}✅ VALID JSON & HOOK REFERENCES OK (${size}B)${NC}"
+        else
+            echo -e "  ${RED}❌ INVALID hooks.json (JSON syntax or missing hook references)${NC}"
+            ERRORS=$((ERRORS + 1))
+            return 1
+        fi
+    elif command -v python3 >/dev/null 2>&1; then
+        if python3 -m json.tool "${config_path}" >/dev/null 2>&1; then
+            echo -e "  ${GREEN}✅ VALID JSON (${size}B)${NC}"
+        else
+            echo -e "  ${RED}❌ INVALID JSON in ${config_path}${NC}"
+            ERRORS=$((ERRORS + 1))
+            return 1
+        fi
+    else
+        echo -e "  ${RED}❌ Neither node nor python3 found to validate JSON${NC}"
+        ERRORS=$((ERRORS + 1))
+        return 1
+    fi
+}
+
+# ==============================================================================
+# Helper: Verify Deliverable & Utility Scripts Syntax & Permissions
+# ==============================================================================
+verify_scripts_runtime() {
+    local scripts_dir="$1"
+    local label="$2"
+    shift 2
+    local items=("$@")
+
+    echo -e "\n📜 Validating Scripts Syntax & Permissions: ${YELLOW}${label}${NC}"
+    printf "%-26s | %-10s | %-12s | %s\n" "Script File" "Exec Bit" "Bash Check" "Status"
+    echo "--------------------------------------------------------------------------------"
+
+    if [[ ! -d "${scripts_dir}" ]]; then
+        echo -e "${RED}❌ Directory not found: ${scripts_dir}${NC}"
+        ERRORS=$((ERRORS + ${#items[@]}))
+        return 1
+    fi
+
+    for item in "${items[@]}"; do
+        local script_file="${scripts_dir}/${item}"
+        if [[ ! -f "${script_file}" ]]; then
+            printf "%-26s | %-10s | %-12s | ${RED}MISSING${NC}\n" "${item}" "---" "---"
+            ERRORS=$((ERRORS + 1))
+            continue
+        fi
+
+        local exec_status="${GREEN}OK${NC}"
+        local bash_status="${GREEN}OK${NC}"
+        local has_err=false
+
+        if [[ ! -x "${script_file}" ]]; then
+            exec_status="${RED}NOT +x${NC}"
+            has_err=true
+        fi
+
+        if ! bash -n "${script_file}" >/dev/null 2>&1; then
+            bash_status="${RED}SYNTAX ERR${NC}"
+            has_err=true
+        fi
+
+        if [[ "${has_err}" == "true" ]]; then
+            printf "%-26s | %-10b | %-12b | ${RED}INVALID${NC}\n" "${item}" "${exec_status}" "${bash_status}"
+            ERRORS=$((ERRORS + 1))
+        else
+            printf "%-26s | %-10b | %-12b | ${GREEN}VALID (OK)${NC}\n" "${item}" "${exec_status}" "${bash_status}"
         fi
     done
 }
@@ -320,19 +511,29 @@ if [[ "${CHECK_MODE}" == "all" || "${CHECK_MODE}" == "repo" ]]; then
     verify_list "${REPO_RULES_DIR}" "Governance Rules (rules/*.md)" "${REQUIRED_RULES[@]}"
     verify_list "${REPO_AGENTS_DIR}" "Specialist Agents (agents/*.md)" "${REQUIRED_AGENTS[@]}"
     verify_agents_frontmatter "${REPO_AGENTS_DIR}" "Repository Agents (agents/*.md)" "${REQUIRED_AGENTS[@]}"
+    verify_list "${REPO_HOOKS_DIR}" "Repository Hooks (hooks/*.mjs)" "${REQUIRED_HOOKS[@]}"
+    verify_hooks_runtime "${REPO_HOOKS_DIR}" "Repository Hooks Syntax & Permissions" "${REQUIRED_HOOKS[@]}"
+    verify_hooks_config "${REPO_HOOKS_CONFIG}" "Repository Hooks Config (hooks.json)"
+    verify_list "${REPO_SCRIPTS_DIR}" "Repository Scripts (scripts/*.sh)" "${REQUIRED_SCRIPTS[@]}"
+    verify_scripts_runtime "${REPO_SCRIPTS_DIR}" "Repository Scripts Syntax & Permissions" "${REQUIRED_SCRIPTS[@]}"
 fi
 
-# Section 3: Installed Target Plugins Verification (Existing checks)
+# Section 3: Installed Target Plugins Verification
 if [[ "${CHECK_MODE}" == "all" || "${CHECK_MODE}" == "target" ]]; then
-    if [[ -d "${TARGET_RULES_DIR}" || -d "${TARGET_AGENTS_DIR}" || "${CHECK_MODE}" == "target" ]]; then
+    if [[ -d "${TARGET_RULES_DIR}" || -d "${TARGET_AGENTS_DIR}" || -d "${TARGET_HOOKS_DIR}" || -e "${TARGET_HOOKS_CONFIG}" || -L "${TARGET_HOOKS_CONFIG}" || -d "${TARGET_SCRIPTS_DIR}" || "${CHECK_MODE}" == "target" ]]; then
         verify_list "${TARGET_RULES_DIR}" "Installed Governance Rules (P0/P1)" "${REQUIRED_RULES[@]}"
         verify_list "${TARGET_AGENTS_DIR}" "Installed Specialist Agents" "${REQUIRED_AGENTS[@]}"
+        verify_list "${TARGET_HOOKS_DIR}" "Installed Hooks (hooks/*.mjs)" "${REQUIRED_HOOKS[@]}"
+        verify_hooks_runtime "${TARGET_HOOKS_DIR}" "Installed Hooks Syntax & Permissions" "${REQUIRED_HOOKS[@]}"
+        verify_hooks_config "${TARGET_HOOKS_CONFIG}" "Installed Hooks Config (hooks.json)"
+        verify_list "${TARGET_SCRIPTS_DIR}" "Installed Scripts (scripts/*.sh)" "${REQUIRED_SCRIPTS[@]}"
+        verify_scripts_runtime "${TARGET_SCRIPTS_DIR}" "Installed Scripts Syntax & Permissions" "${REQUIRED_SCRIPTS[@]}"
     fi
 fi
 
 echo "--------------------------------------------------------------------------------"
 if [[ ${ERRORS} -eq 0 ]]; then
-    echo -e "${GREEN}🎉 100% OF ENTERPRISE RULES AND AGENTS ARE VERIFIED AND READY!${NC}"
+    echo -e "${GREEN}🎉 100% OF ENTERPRISE RULES, AGENTS, HOOKS, AND SCRIPTS ARE VERIFIED AND READY!${NC}"
     exit 0
 else
     echo -e "${RED}⚠️  Detected ${ERRORS} issue(s). Please run ./scripts/install.sh to resynchronize.${NC}"

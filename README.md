@@ -13,11 +13,13 @@ This repository establishes the definitive engineering governance framework betw
 3. **Phase 0.5 Base Context Scaffold Auto-Detection:** Automatically inspects target repositories for `.agents/knowledge/project-overview.md` and runs `./scripts/scaffold.sh` to auto-detect tech stack manifests (Node.js, Python, Rust, Go) and bootstrap `.agents/` knowledge specs before specialist discovery begins.
 4. **True Multi-Agent Subagent Architecture (Anti-Pretense):** Dispatches genuine, independent subagents (`invoke_subagent`) bound by structured Delegation Contracts with disjoint file scopes. Strictly prohibits monolithic coordinators from faking specialist phase banners.
 5. **Native Antigravity Tool Integration (v2.1):** Centralizes all **20 enterprise specialist agents** directly in version control. All agents declare canonical Antigravity native tools (`read_file`, `edit_file`, `write_file`, `run_command`, `manage_task`, `search_web`), completely eliminating legacy Claude Code tool runtime crashes (`tool "Read" not found in registry`).
-6. **Strict Anti-Silent Circuit Breaker (≤4 Tools):** Enforces immediate Turn-1 text-first announcements and hard yields: agents must never exceed 4 consecutive tool calls without visible interim progress text.
-7. **Mandatory Pre-Delivery Verification (`verify-deliverable.sh`):** Zero-defect delivery standard. Every generated `.docx`, `.xlsx`, `.pdf`, or formatted document must empirically pass structural, ZIP container, and XML schema checks (preventing ECMA-376 OpenXML corruption) before user delivery.
-8. **Scratch File Isolation:** Mandates that all temporary generator scripts, intermediate assets, and diagnostic fixtures reside strictly in `<Artifact Directory Path>/scratch/` or `/tmp/`, preserving clean workspace trees.
-9. **Decoupled CI/CD Architecture:** Reusable 2-stage GitHub Actions pipelines (CI Gate with TruffleHog secret scanning and automated testing; CD with health-check rollbacks).
-10. **Obsidian-Compliant SOP Playbook:** Complete documentation with native Mermaid diagrams, Obsidian callouts, and empirical real-world audit case studies.
+6. **Mechanical `PreToolUse` Hooks (`hooks.json`):** Enforces both destructive-command blocking (`validate-tool-call.mjs` on `run_command`) and the 4-tool anti-silent circuit breaker (`circuit-breaker.mjs` on `*`) before tool execution.
+7. **Strict Anti-Silent Circuit Breaker (≤4 Tools):** Enforces immediate Turn-1 text-first announcements and hard yields: agents must never exceed 4 consecutive tool calls without visible interim progress text.
+8. **Execution Resilience, Watchdogs & Model Tiering:** Mandates `120s` macOS-portable command timeouts, `MAX_RETRIES=3`, `schedule` one-shot watchdogs (`DurationSeconds: 600`), interim `send_message` before background waits, Bash 3.2 cleanup traps/`wait "$PID"`, and `Model: "flash"` default tiering (`inherit`/`pro` reserved for architecture, complex debugging, and synthesis).
+9. **Mandatory Pre-Delivery Verification (`verify-deliverable.sh`):** Zero-defect delivery standard. Every generated `.docx`, `.xlsx`, `.pdf`, or formatted document must empirically pass structural, ZIP container, and XML schema checks (local `./scripts/verify-deliverable.sh` or `~/.gemini/config/plugins/ag-kit/scripts/verify-deliverable.sh` in external repos) before user delivery.
+10. **Scratch File Isolation:** Mandates that all temporary generator scripts, intermediate assets, and diagnostic fixtures reside strictly in `<Artifact Directory Path>/scratch/` or `/tmp/`, preserving clean workspace trees.
+11. **Decoupled CI/CD Architecture:** Reusable 2-stage GitHub Actions pipelines (CI Gate with TruffleHog secret scanning and automated testing; CD with health-check rollbacks).
+12. **Obsidian-Compliant SOP Playbook:** Complete documentation with native Mermaid diagrams, Obsidian callouts, Execution & Resilience Metrics, and empirical real-world audit case studies.
 
 ---
 
@@ -28,17 +30,21 @@ This repository establishes the definitive engineering governance framework betw
 ├── WORKFLOW-PLAYBOOK.md        # 📘 Enterprise SOP playbook (Obsidian-compliant)
 ├── README.md                   # 📖 Documentation and onboarding guide
 ├── Makefile                    # ⚡ Automation targets (install, verify, scaffold)
+├── hooks.json                  # 🪝 Antigravity PreToolUse hook registry
 ├── skills-lock.json            # 🔒 Deterministic skill dependency lockfile
+├── hooks/                      # 🛡️ Runtime PreToolUse enforcement hooks
+│   ├── circuit-breaker.mjs     # Blocks the 5th consecutive silent tool call (ceiling: 4)
+│   └── validate-tool-call.mjs  # Safety gate blocking destructive root-disk shell commands
 ├── rules/                      # 🏛️ Persistent governance rules (linked to Antigravity)
-│   ├── GEMINI.md               # Master rules: 4-tool circuit breaker, pre-delivery verification, anti-pretense
-│   ├── core-protocol.md        # Turn-1 constraints, path awareness, anti-silent loops, scratch isolation
-│   ├── planning-gate.md        # Phase 0 setup & Proceed gate approval barrier (v2.0)
+│   ├── GEMINI.md               # Master rules: 4-tool circuit breaker, timeouts, watchdogs, verification
+│   ├── core-protocol.md        # Turn-1 constraints, anti-silent loops, watchdogs, model tiering
+│   ├── planning-gate.md        # Phase 0 setup, Proceed gate barrier, Phase 4 resilience metrics
 │   ├── git-safety.md           # P0 rule: strict prohibition of direct edits on main
-│   ├── delegation-contract.md  # Subagent prompt injection & disjoint file ownership contracts
+│   ├── delegation-contract.md  # Subagent contracts, disjoint ownership, timeout & watchdog budgets
 │   ├── impact-analysis.md      # Full-stack "One Change, Two Sides" synchronization
-│   ├── request-routing.md      # Autonomous domain classifier and specialist router checklist
-│   ├── universal-rules.md      # Global engineering constraints (Clean code, zero-defect delivery)
-│   ├── code-rules.md           # Implementation rules and Socratic gate
+│   ├── request-routing.md      # Autonomous domain classifier and specialist router checklist (<=4 tools)
+│   ├── universal-rules.md      # Clean code, 120s timeouts, MAX_RETRIES=3, Bash 3.2 safety, deliverable QA
+│   ├── code-rules.md           # Implementation rules, Socratic gate, script timeouts & Bash safety
 │   ├── design-rules.md         # UI/UX engineering constraints (pure ASCII en-US)
 │   └── quick-reference.md      # High-speed lookup index for agents and skills
 ├── agents/                     # 🤖 Complete 20-Agent Enterprise Roster (Native Antigravity Tools)
@@ -126,6 +132,9 @@ make verify
 ```bash
 # Validates OpenXML schemas, PDF trailers, and file encodings before shipping
 ./scripts/verify-deliverable.sh path/to/document.docx
+
+# Fallback when running inside external target repositories
+~/.gemini/config/plugins/ag-kit/scripts/verify-deliverable.sh path/to/document.docx
 ```
 
 ### Step 4: Scaffold New Projects & Auto-Detect Context
@@ -146,15 +155,39 @@ flowchart LR
     Step1["1. Turn-1 Text Announcement"] --> Step2["2. Plan Artifact + Proceed Gate"]
     Step2 --> Step3["3. Phase 0: feat/* Branch Checkout"]
     Step3 --> Step35["3.5. Phase 0.5: Context Auto-Scaffold"]
-    Step35 --> Step4["4. Dispatch Subagents with Contracts"]
-    Step4 --> Step5["5. <= 4 Tools Circuit Breaker & Scratch Space"]
-    Step5 --> Step6["6. verify-deliverable.sh Pre-Delivery Gate"]
+    Step35 --> Step4["4. Dispatch Subagents (Model + Watchdog)"]
+    Step4 --> Step5["5. PreToolUse Hooks & <=4 Tool Ceiling"]
+    Step5 --> Step6["6. 120s Timeouts & verify-deliverable.sh"]
 ```
 
 *   **No Pretense:** Coordinators never print specialist headers without dispatching real subagents.
 *   **No Silent Loops:** Never exceed 4 consecutive tool calls without emitting visible user progress text.
 *   **No Dirty Workspace:** Generators and temporary scripts run in `scratch/` or `/tmp/`, never root.
-*   **No Unverified Deliverables:** Formatted documents (`.docx`, `.xlsx`, `.pdf`) must pass `verify-deliverable.sh` before presentation.
+*   **No Unverified Deliverables:** Formatted documents (`.docx`, `.xlsx`, `.pdf`, `.md`) must pass `verify-deliverable.sh` (or the global `~/.gemini/config/plugins/ag-kit/scripts/verify-deliverable.sh` fallback) before presentation.
+
+---
+
+## 🪝 PreToolUse Hooks & Execution Resilience
+
+### Mechanical Hook Enforcement (`hooks.json` & `hooks/`)
+`hooks.json` registers two Antigravity `PreToolUse` gates that fail open safely on malformed stdin/I/O errors while mechanically enforcing safety and observability:
+
+| Hook ID | Matcher | Script | Timeout | Enforcement Behavior |
+| :--- | :--- | :--- | :--- | :--- |
+| **`ag-kit-safety-gate`** | `run_command` | `node ./hooks/validate-tool-call.mjs` | `10s` | Denies catastrophic root-disk deletion (`rm -rf /`), filesystem formatting (`mkfs`, Windows `format`), and raw block-device overwrites (`dd ... of=/dev/*`). |
+| **`ag-kit-circuit-breaker`** | `*` | `node ./hooks/circuit-breaker.mjs` | `5s` | Tails the session transcript and blocks the 5th consecutive tool call if no visible model progress text has been emitted (strict ceiling: `4`). |
+
+### Timeouts, Bounded Retries, Watchdogs & Model Tiering
+*   **`120s` Command Timeouts & `MAX_RETRIES=3`:** Verification/test commands enforce a `120s` hard timeout via macOS-portable wrappers (`perl -e 'alarm shift; exec @ARGV' 120 <cmd>` or Python `subprocess.run(..., timeout=120)` — macOS lacks GNU `timeout` by default). Never rely on `WaitMsBeforeAsync` (only backgrounds commands) or `NotificationTimeoutSeconds` (only pings) to kill hung tasks. Cap retries at `MAX_RETRIES=3` with stop-and-escalate on exhaustion.
+*   **Bash 3.2 Test Script Hygiene:** Never call bare `wait` in scripts running background servers/daemons (`wait "$CLIENT_PID"` only), attach cleanup traps (`trap 'kill -TERM ... 2>/dev/null || true' EXIT INT TERM`), and guard empty arrays for Bash 3.2 `set -u` (`if [ ${#ARR[@]} -gt 0 ]`).
+*   **Subagent `schedule` Watchdogs & Messaging:** Coordinators attach a `schedule` one-shot watchdog (`DurationSeconds: 600`, `TimerCondition: "<subagentId>"` or `"any"`) to long-running `invoke_subagent` calls, and communicate on wakeup via `send_message` / `manage_subagents` instead of reading raw `transcript.jsonl` via shell. Subagents waiting on background `run_command` tasks MUST send an interim `send_message` status update to the parent BEFORE ending their turn (monitoring via `NotificationTimeoutSeconds` / `schedule`), because canceled tasks emit `MESSAGE_PRIORITY_LOW` and will not wake an idle subagent.
+*   **Subagent `Model` Tiering:** Default to `Model: "flash"` on `invoke_subagent` for discovery (`explorer-agent`), routine implementation, and QA/test scripting; reserve `inherit` / `pro` for deep architecture, complex debugging, or multi-domain synthesis.
+
+### Execution & Resilience Metrics (Required in Phase 4 & Audit Reports)
+
+| Agent / Subagent (ID) | Model Tier | Wall Time | Timeouts Configured / Triggered | Retry Attempts (used/max) | Circuit-Breaker Denials | Completion Signal |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `<agent-name> (<id>)` | `flash` / `inherit` / `pro` | `<Ns>` | `120s cmd, 600s watchdog / 0` | `0/3` | `0` | `send_message` / `watchdog` / `manual resume` |
 
 ---
 
