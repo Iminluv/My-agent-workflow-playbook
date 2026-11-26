@@ -3,76 +3,112 @@ name: git-safety
 version: 1.0.0
 priority: P0
 trigger: always_active
-description: Tuyệt đối cấm can thiệp hoặc ghi đè mã nguồn trực tiếp trên nhánh chính (main/master). Bắt buộc cô lập tác vụ trên nhánh tính năng (feature branch) hoặc worktree riêng biệt.
+description: Strictly forbids modifying or overwriting source code directly on the main or master branch. Enforces task isolation on dedicated feature branches or worktrees.
 ---
 
-# 🛑 Quy Tắc An Toàn Nhánh Git (Git Branch Safety Protocol - P0)
+# 🛑 Git Branch Safety Protocol (P0 — Always Active)
 
-> **CẤP ĐỘ ƯU TIÊN CAO NHẤT (P0):** Áp dụng cho TẤT CẢ các tác tử có quyền chỉnh sửa file (`orchestrator`, `backend-specialist`, `frontend-specialist`, `security-auditor`, `debugger`, `devops-engineer`, `test-engineer`,...).
-
----
-
-## 🚫 1. ĐIỀU CẤM TUYỆT ĐỐI (ABSOLUTE PROHIBITION)
-
-1. **TUYỆT ĐỐI KHÔNG BAO GIỜ** tạo, sửa, xóa file hoặc chạy lệnh commit trực tiếp trên nhánh `main` hoặc `master`.
-2. **TUYỆT ĐỐI KHÔNG BAO GIỜ** force-push (`git push -f`) lên bất kỳ nhánh chia sẻ nào.
-3. Không thực hiện các thao tác phá hủy Git (`git reset --hard`, `git clean -fdx`) khi chưa có sự xác nhận của người dùng.
+> **HIGHEST PRIORITY (P0):** Applies universally to ALL agents with file-modification capabilities (`orchestrator`, `backend-specialist`, `frontend-specialist`, `security-auditor`, `debugger`, `devops-engineer`, `test-engineer`, etc.).
 
 ---
 
-## ✅ 2. BƯỚC 0 BẮT BUỘC TRƯỚC KHI CHỈNH SỬA CODE (STEP 0 - PRE-CODE GATE)
+## 🚫 1. ABSOLUTE PROHIBITIONS
 
-Trước khi gọi bất kỳ công cụ chỉnh sửa nào (`edit_file`, `write_file`, hoặc lệnh shell tạo file mã nguồn):
+1. **NEVER** create, edit, write, delete files, or run git commit directly on the `main` or `master` branch.
+2. **NEVER** force-push (`git push -f` or `--force`) to any shared or upstream branch.
+3. **NEVER** execute destructive git actions (`git reset --hard`, `git clean -fdx`) without explicit user authorization in chat.
 
-### Kiểm tra nhánh hiện tại:
+---
+
+## ✅ 2. MANDATORY PRE-CODE GATE (STEP 0)
+
+Before executing ANY file-modification tool (`edit_file`, `write_file`, or terminal commands that write source code):
+
+### Check the current working branch:
 ```bash
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "not-a-git-repo")
 ```
 
-- **Nếu `CURRENT_BRANCH` là `main` hoặc `master`:**
-  👉 **DỪNG LẠI NGAY LẬP TỨC!** Không được ghi bất kỳ byte nào vào thư mục làm việc.
-  👉 Tạo và chuyển sang nhánh tính năng mới theo quy chuẩn:
+- **If `CURRENT_BRANCH` is `main` or `master`:**
+  👉 **STOP IMMEDIATELY!** Do not write a single byte to the working tree.
+  👉 Create and switch to a dedicated feature branch following standard naming conventions:
   ```bash
-  TASK_SLUG="<ten-tac-vu-viet-lien-khong-dau>"
+  TASK_SLUG="<concise-kebab-case-task-slug>"
   DATE_STAMP=$(date +%Y%m%d)
   git checkout -b "feat/${TASK_SLUG}-${DATE_STAMP}"
   ```
-  👉 Xác nhận lại:
+  👉 Confirm branch switch:
   ```bash
-  git branch --show-current  # Phải là feat/... mới được tiếp tục
+  git branch --show-current  # Must output feat/... before proceeding
   ```
 
 ---
 
-## 👥 3. RÀNG BUỘC KHI ĐIỀU PHỐI SUBAGENTS (`invoke_subagent`)
+## 👥 3. SUBAGENT DELEGATION CONSTRAINTS (`invoke_subagent`)
 
-Khi `orchestrator` phân quyền cho các subagents chuyên môn:
+When `orchestrator` delegates work to specialist subagents:
 
-1. **Nhánh đã sẵn sàng:** `orchestrator` phải đảm bảo nhánh `feat/...` đã được checkout **TRƯỚC KHI** gọi `invoke_subagent`.
-2. **Khai báo tường minh trong Prompt:**
-   Trong nội dung `Prompt` của subagent, BẮT BUỘC phải truyền biến môi trường / thông tin nhánh:
+1. **Branch Prerequisite:** The `orchestrator` MUST ensure the feature branch (`feat/...`) is already checked out **BEFORE** invoking subagents.
+2. **Explicit Prompt Injection:**
+   The prompt passed to each subagent MUST explicitly declare:
    ```text
-   RÀNG BUỘC AN TOÀN NHÁNH:
-   - Thư mục làm việc đang ở nhánh: feat/<ten-nhanh>
-   - Xác nhận nhánh qua `git branch --show-current` trước khi sửa file.
-   - Tuyệt đối không can thiệp vào main.
+   BRANCH SAFETY CONSTRAINT:
+   - Working branch: feat/<task-slug>-<date>
+   - Run `git branch --show-current` to verify before making any file changes.
+   - Modifying main or master is strictly forbidden.
    ```
-3. **Phân định vùng file (File Ownership):**
-   Nếu chạy nhiều subagents song song, mỗi subagent CHỈ ĐƯỢC PHÉP chỉnh sửa danh sách file không trùng lặp (Disjoint File Sets) để triệt tiêu nguy cơ xung đột (Race Condition).
+3. **Disjoint File Ownership:**
+   When running multiple writing subagents in parallel, each subagent MUST be assigned exclusive, non-overlapping file paths (`Allowed File Paths`) to completely eliminate race conditions and write contention.
 
 ---
 
-## 🔄 4. QUY TRÌNH HỢP NHẤT AN TOÀN (SAFE MERGE & INTEGRATION)
+## 🔄 4. SAFE MERGE & INTEGRATION PROTOCOL
 
-Khi hoàn thành toàn bộ công việc:
-1. Chạy toàn bộ test suite kiểm chứng (`pytest`, `npm test`).
-2. Commit các thay đổi trên nhánh feature:
+Upon completing implementation:
+1. Run the full automated verification test suite (`pytest`, `npm test`).
+2. Commit verified changes on the feature branch:
    ```bash
    git commit -m "feat(scope): concise description of verified change"
    ```
-3. Tạo Pull Request hoặc báo cáo cho người dùng xác nhận trước khi merge vào `main`:
+3. Create a Pull Request or notify the user for manual verification prior to merging into `main`:
    ```markdown
-   ✅ Toàn bộ thay đổi đã được đóng gói an toàn tại nhánh: `feat/<task-slug>`
-   📊 Kết quả kiểm thử: [X passing tests]
-   👉 Bạn có thể review qua `git diff main..feat/<task-slug>` trước khi gộp nhánh.
+   ✅ All changes have been safely isolated on branch: `feat/<task-slug>`
+   📊 Test Results: [X passing tests]
+   👉 Review diff before merge via: `git diff main..feat/<task-slug>`
    ```
+
+---
+
+### 4.1 The Merge When Ordered Protocol (Post-Merge Commit Prohibition)
+
+When the user explicitly orders a merge (e.g., `merge`, `merge all`):
+
+1. **Pre-Merge Feature Branch Finalization:**
+   - All documentation, summaries, dashboards, and manifests **MUST** be committed to the feature branch **BEFORE** switching to `main`.
+   - Ensure the working tree is clean:
+     ```bash
+     git status --porcelain  # Must be clean before switching branches
+     ```
+
+2. **Clean Fast-Forward Merge Execution:**
+   - Switch to `main` and execute the merge cleanly:
+     ```bash
+     git checkout main && git merge <feature-branch> --ff-only
+     ```
+
+3. **STRICT POST-MERGE COMMIT PROHIBITION:**
+   - **Once on `main`, the agent is strictly forbidden from creating, editing, or committing any new files.**
+   - If any new file, document, or log must be created post-merge, the agent **MUST** immediately checkout a new feature branch:
+     ```bash
+     git checkout -b feat/docs-<task-slug>
+     ```
+
+4. **Branch Retention & Push Notification:**
+   - **Do NOT delete feature branches** with `git branch -d` or `git branch -D` until verified pushed to `origin`.
+   - **Warn the User:** Local `main` is ahead of `origin/main` and needs push:
+     ```markdown
+     ⚠️ **Merge Complete (Local Only):**
+     - Branch `feat/<task-slug>` merged into `main` via `--ff-only`.
+     - Local `main` is ahead of `origin/main`. Run `git push origin main` to synchronize upstream.
+     - Feature branch retained locally until remote push is confirmed.
+     ```

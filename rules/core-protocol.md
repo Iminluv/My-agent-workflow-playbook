@@ -38,18 +38,35 @@ Agent activated → Check frontmatter "skills:" → Read SKILL.md (INDEX) → Re
 
 ### 1.2 Phase Transition & Anti-Silent Execution Protocol (MANDATORY)
 
-- **Phase Boundary Announcement:** In multi-phase or multi-domain tasks, announcements are **NOT** a one-time event for Turn 1. Every time execution crosses a phase or domain boundary, the AI **MUST** emit an explicit transition checkpoint before calling tools in that phase:
+- **Phase Boundary Announcement & Mandatory Dispatch:** In multi-phase tasks, announcements are **NOT** a one-time event for Turn 1. Every time execution crosses a phase or domain boundary, the AI **MUST** emit an explicit transition checkpoint before calling tools in that phase:
   ```markdown
   ---
   ### 🚀 Phase [X]: [Phase Name]
   🤖 **Applying knowledge of `@[specialist-agent]`...**
   📚 **Using skills: `@[skill-1]` + `@[skill-2]`...**
   ```
-- **Circuit Breaker against Silent Tool Loops:** An agent **MUST NOT** execute more than 8 tool calls consecutively without outputting visible interim progress text to the user.
+- **🛑 Anti-Pretense Mandate (No Simulated Execution):**
+  - Announcing a specialist in a phase checkpoint requires an immediate accompanying `invoke_subagent` or `swarm action: 'add'` call with a Delegation Contract.
+  - The Orchestrator is **STRICTLY FORBIDDEN** from announcing a specialist and then performing the source code edits itself in the main coordinator thread (*Pretense Violation*).
+- **Circuit Breaker against Silent Tool Loops:** An agent **MUST NOT** execute more than 4 consecutive tool calls without outputting visible interim progress text to the user.
+- **Scratch Directory Hygiene & Isolation:** Generator scripts, intermediate assets, and temporary test files must strictly reside in `<Artifact Directory Path>/scratch/` or `/tmp/`. Never generate scratch code or dump intermediate build artifacts in the project root or tracked workspace paths.
 - **Transparency Mandate:** The user must be able to verify at all times:
-  1. Which specialist agent is currently active.
+  1. Which specialist agent is currently active (with verified subagent/worker ID).
   2. What skills are loaded for the current phase.
   3. What step/milestone is currently being executed.
+
+### 1.3 Subagent Resilience, Watchdogs & Model Tiering (MANDATORY)
+
+- **Subagent `Model` Tiering:**
+  - Default `Model: "flash"` on `invoke_subagent` for discovery (`explorer-agent`), routine implementation, and QA/test scripting.
+  - Reserve `inherit` / `pro` for deep architecture, complex debugging, or multi-domain synthesis.
+- **Subagent Watchdog & Wakeup Protocol:**
+  - Coordinators dispatching long-running subagents via `invoke_subagent` MUST attach a `schedule` one-shot watchdog (`DurationSeconds: 600`, `TimerCondition: "<subagentId>"` or `"any"`).
+  - Subagents launching a background `run_command` task MUST send an interim `send_message` status update to the parent BEFORE ending their turn to wait (and monitor using `NotificationTimeoutSeconds` / `schedule`), because canceled background tasks emit `MESSAGE_PRIORITY_LOW` and will NOT wake an idle subagent.
+  - Coordinators waking on watchdog timeout or user `"Continue"` MUST communicate via `send_message` / `manage_subagents` rather than inspecting raw subagent `transcript.jsonl` via shell.
+- **Bounded Command Timeouts (`120s`) & Retries (`MAX_RETRIES=3`):**
+  - Verification/test commands MUST enforce a `120s` hard timeout via macOS-portable wrappers (`perl -e 'alarm shift; exec @ARGV' 120 ...` or Python `subprocess.run(..., timeout=120)`), never relying on `WaitMsBeforeAsync` (which only backgrounds) or `NotificationTimeoutSeconds` (which only pings).
+  - Automated retries are capped at `MAX_RETRIES=3` with stop-and-escalate on failure.
 
 ### 2. Enforcement Protocol
 
@@ -79,6 +96,9 @@ Agent activated → Check frontmatter "skills:" → Read SKILL.md (INDEX) → Re
 
 - Agents: `.agents/agent/` (Project)
 - Skills: `.agents/skills/` (Project)
+- Knowledge: `.agents/knowledge/` (Project domain context, architecture specs, and workflow traces)
+- Workflows: `.agents/workflows/` (Project standard operating procedures and runbooks)
+- Rules: `.agents/rule/` (Project-level coding conventions and standards)
 - Memory: `.agents/memory/` (Project)
 - Runtime Scripts: `.agents/skills/<skill>/scripts/`
 
